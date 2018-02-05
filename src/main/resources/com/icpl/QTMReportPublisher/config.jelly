@@ -1,0 +1,32 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"> 
+	<f:section title="Qmetry Configuration">
+		<f:entry title="Automation API URL" field="qtmUrl">
+			<f:textbox placeholder="https://qtm-instance-uri/" />
+		</f:entry>
+		
+		<f:entry title="Automation API Key" field="qtmAutomationApiKey">
+			<f:textbox placeholder="Your QMetry project automation API Key" />
+		</f:entry>
+		
+		<f:entry title="Test Suite" field="testSuiteName">
+			<f:textbox placeholder="QMetry Test Suite Key or Name" />
+		</f:entry>
+		
+		<f:entry title="Build" field="buildName">
+			<f:textbox placeholder="Enter Cycle Name or Id" />
+		</f:entry>
+		
+		<f:entry title="Automation Framework" field="automationFramework">
+			<f:select />
+		</f:entry>
+		
+		<f:entry title="Result File(s) Path" field="testResultFilePath">
+			<f:textbox placeholder="/path/to/result.xml(.json)" />
+		</f:entry>
+	
+		<f:entry title="Platform" field="platformName">
+			<f:textbox placeholder="Enter Platoform name or Id"/>
+		</f:entry>
+	</f:section>	
+</j:jelly>
