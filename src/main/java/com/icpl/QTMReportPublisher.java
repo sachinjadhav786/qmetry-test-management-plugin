@@ -126,8 +126,10 @@ public class QTMReportPublisher extends Recorder {
 							{
                                 System.out.println("QTMJenkinsPlugin : Uploading result file...");
                                 listener.getLogger().println("QTMJenkinsPlugin : Uploading result file...");
-                                conn.uploadFileToTestSuite(listOfFiles[i].getAbsolutePath(), testSuiteName,
+                                String response = conn.uploadFileToTestSuite(listOfFiles[i].getAbsolutePath(), testSuiteName,
                                         getAutomationFramework(), buildName, platformName);
+								System.out.println("QTMJenkinsPlugin : Response : " + response);
+                                listener.getLogger().println("QTMJenkinsPlugin : Response : " + response);
                                 System.out.println("QTMJenkinsPlugin : Result file successfully uploaded!");
                                 listener.getLogger().println("QTMJenkinsPlugin : Result file successfully uploaded!");
                             } 
@@ -144,7 +146,9 @@ public class QTMReportPublisher extends Recorder {
 				{
                     System.out.println("QTMJenkinsPlugin : Uploading result file...");
                     listener.getLogger().println("QTMJenkinsPlugin : Uploading result file...");
-                    conn.uploadFileToTestSuite(compfilepath, testSuiteName, getAutomationFramework(), buildName, platformName);
+                    String response = conn.uploadFileToTestSuite(compfilepath, testSuiteName, getAutomationFramework(), buildName, platformName);
+					System.out.println("QTMJenkinsPlugin : Response : " + response);
+					listener.getLogger().println("QTMJenkinsPlugin : Response : " + response);
                     System.out.println("QTMJenkinsPlugin : Result file successfully uploaded!");
                     listener.getLogger().println("QTMJenkinsPlugin : Result file successfully uploaded!");
                 }

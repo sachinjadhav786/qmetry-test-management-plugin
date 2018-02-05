@@ -260,7 +260,7 @@ public class QTMApiConnection {
     }
 	*/
 
-    public boolean uploadFileToTestSuite(String filePath, String testSuiteName, String automationFramework,
+    public String uploadFileToTestSuite(String filePath, String testSuiteName, String automationFramework,
             String buildName, String platformName)
             throws InvalidCredentialsException, ProtocolException, IOException, QTMException {
         CloseableHttpClient httpClient = null;
@@ -287,11 +287,12 @@ public class QTMApiConnection {
 
             httpClient = HttpClients.createDefault();
             response = httpClient.execute(uploadFile);
-
-            if (!(response.getStatusLine().getStatusCode() == 200)) {
+            String respEntityStr = EntityUtils.toString(response.getEntity());
+            if (!(response.getStatusLine().getStatusCode() == 200)) 
+			{
                 throw new QTMException("Error uploading file!");
             }
-            return true;
+            return respEntityStr;
         } catch (Exception e) {
             System.out.println("QTMJenkinsPlugin : ERROR : " + e);
             throw new QTMException(
