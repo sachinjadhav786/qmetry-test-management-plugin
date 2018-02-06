@@ -86,18 +86,37 @@ public class QTMReportPublisher extends Recorder {
 	{
         try
 		{
-            String compfilepath = build.getWorkspace().toString() + getTestResultFilePath();
+            String compfilepath = build.getWorkspace().toString() + "/" + getTestResultFilePath().trim();
             String buildName = getBuildName();
             String platformName = getPlatformName();
             String testSuiteName = getTestSuiteName();
             if (testSuiteName == null)
-                testSuiteName = "";
+			{
+				testSuiteName = "";
+			}
+			else
+			{
+				testSuiteName = testSuiteName.trim();
+			}
             if (buildName == null)
-                buildName = "";
+            {
+				buildName = "";
+			}
+			else
+			{
+				buildName = buildName.trim();
+			}
             if (platformName == null)
+			{
                 platformName = "";
+			}
+			else
+			{
+				platformName = platformName.trim();
+			}
             String displayName = "QTMJenkinsPlugin : Starting Post Build Action";
-            if (!testSuiteName.isEmpty()) {
+            if (!testSuiteName.isEmpty()) 
+			{
                 displayName += " : " + testSuiteName;
             }
             String repeated = new String(new char[displayName.length()]).replace("\0", "-");
@@ -106,7 +125,7 @@ public class QTMReportPublisher extends Recorder {
 			
             File filePath = new File(compfilepath);
 			if(!filePath.exists()) throw new QTMException("Failed to read result file(s) at location '"+compfilepath+"'");
-            QTMApiConnection conn = new QTMApiConnection(getQtmUrl(), getQtmAutomationApiKey());
+            QTMApiConnection conn = new QTMApiConnection(getQtmUrl().trim(), getQtmAutomationApiKey().trim());
             synchronized (conn) 
 			{
                 // Upload Result Files
