@@ -288,15 +288,15 @@ public class QTMApiConnection {
             httpClient = HttpClients.createDefault();
             response = httpClient.execute(uploadFile);
             String respEntityStr = EntityUtils.toString(response.getEntity());
+			System.out.println("QMetry Test Management Plugin : Response : " + respEntityStr);
             if (!(response.getStatusLine().getStatusCode() == 200)) 
 			{
-                throw new QTMException("Error uploading file!");
+                throw new QTMException("Error uploading file to server!");
             }
             return respEntityStr;
         } catch (Exception e) {
-            System.out.println("QTMJenkinsPlugin : ERROR : " + e);
-            throw new QTMException(
-                    "Could not upload file '" + filePath + "' to test suite '" + testSuiteName + "'!");
+            System.out.println("QMetry Test Management Plugin : ERROR : " + e.toString());
+            throw new QTMException("Could not upload file '" + filePath + "'");
         } finally {
             try {
                 httpClient.close();

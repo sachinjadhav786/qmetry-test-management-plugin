@@ -13,7 +13,7 @@
     <properties>
         <jenkins.version>2.7.3</jenkins.version>
     </properties>
-    <name>QMetry Test Management</name>
+    <name>QMetry Test Management Plugin</name>
     <description>Ship high quality products, faster by linking automated test results from Jenkins to QMetry Test Management.</description>
     <url>https://wiki.jenkins.io/display/JENKINS/Jenkins+Integration+-+QMetry+Test+Managment</url>
 	<dependencies>

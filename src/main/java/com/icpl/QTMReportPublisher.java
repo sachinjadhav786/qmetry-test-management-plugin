@@ -84,6 +84,7 @@ public class QTMReportPublisher extends Recorder {
     @Override
     public boolean perform(final AbstractBuild build, final Launcher launcher, final BuildListener listener) 
 	{
+		String pluginName = "QMetry Test Management Plugin";
         try
 		{
             String compfilepath = build.getWorkspace().toString() + "/" + getTestResultFilePath().trim();
@@ -114,7 +115,7 @@ public class QTMReportPublisher extends Recorder {
 			{
 				platformName = platformName.trim();
 			}
-            String displayName = "QTMJenkinsPlugin : Starting Post Build Action";
+            String displayName = pluginName + " : Starting Post Build Action";
             if (!testSuiteName.isEmpty()) 
 			{
                 displayName += " : " + testSuiteName;
@@ -131,8 +132,8 @@ public class QTMReportPublisher extends Recorder {
                 // Upload Result Files
                 if (filePath.isDirectory()) 
 				{
-                    System.out.println("QTMJenkinsPlugin : Reading result files from Directory '"+compfilepath+"'");
-                    listener.getLogger().println("QTMJenkinsPlugin : Reading result files from Directory '"+compfilepath+"'");
+                    System.out.println(pluginName + " : Reading result files from Directory '"+compfilepath+"'");
+                    listener.getLogger().println(pluginName + " : Reading result files from Directory '"+compfilepath+"'");
                     File[] listOfFiles = filePath.listFiles();
 
                     for (int i = 0; i < listOfFiles.length; i++) 
@@ -143,33 +144,34 @@ public class QTMReportPublisher extends Recorder {
                             listener.getLogger().println("\nQTMJenkinsPlugin : Result File Found '" + listOfFiles[i].getName() + "'");
                             try 
 							{
-                                System.out.println("QTMJenkinsPlugin : Uploading result file...");
-                                listener.getLogger().println("QTMJenkinsPlugin : Uploading result file...");
+                                System.out.println(pluginName + " : Uploading result file...");
+                                listener.getLogger().println(pluginName + " : Uploading result file...");
                                 String response = conn.uploadFileToTestSuite(listOfFiles[i].getAbsolutePath(), testSuiteName,
                                         getAutomationFramework(), buildName, platformName);
-								System.out.println("QTMJenkinsPlugin : Response : " + response);
-                                listener.getLogger().println("QTMJenkinsPlugin : Response : " + response);
-                                System.out.println("QTMJenkinsPlugin : Result file successfully uploaded!");
-                                listener.getLogger().println("QTMJenkinsPlugin : Result file successfully uploaded!");
+								System.out.println(pluginName + " : Response : " + response);
+                                listener.getLogger().println(pluginName + " : Response : " + response);
+                                System.out.println(pluginName + " : Result file successfully uploaded!");
+                                listener.getLogger().println(pluginName + " : Result file successfully uploaded!");
                             } 
 							catch (QTMException e) 
 							{
-                                System.out.println("QTMJenkinsPlugin : ERROR : " + e.getMessage());
-                                System.out.println("QTMJenkinsPlugin : Failed to upload Result file!");
-                                listener.getLogger().println("QTMJenkinsPlugin : Failed to upload Result file!");
+                                System.out.println(pluginName + " : ERROR : " + e.getMessage());
+                                System.out.println(pluginName + " : Failed to upload Result file!");
+                                listener.getLogger().println(pluginName + " : Failed to upload Result file!");
                             }
                         }
                     }
                 }
 				else  if(filePath.isFile())
 				{
-                    System.out.println("QTMJenkinsPlugin : Uploading result file...");
-                    listener.getLogger().println("QTMJenkinsPlugin : Uploading result file...");
+                    System.out.println(pluginName + " : Reading result file '"+compfilepath+"'");
+                    listener.getLogger().println(pluginName + " : Reading result file '"+compfilepath+"'");
+                    System.out.println(pluginName + " : Uploading result file...");
+                    listener.getLogger().println(pluginName + " : Uploading result file...");
                     String response = conn.uploadFileToTestSuite(compfilepath, testSuiteName, getAutomationFramework(), buildName, platformName);
-					System.out.println("QTMJenkinsPlugin : Response : " + response);
-					listener.getLogger().println("QTMJenkinsPlugin : Response : " + response);
-                    System.out.println("QTMJenkinsPlugin : Result file successfully uploaded!");
-                    listener.getLogger().println("QTMJenkinsPlugin : Result file successfully uploaded!");
+					listener.getLogger().println(pluginName + " : Response : " + response);
+                    System.out.println(pluginName + " : Result file successfully uploaded!");
+                    listener.getLogger().println(pluginName + " : Result file successfully uploaded!");
                 }
 				else
 				{
@@ -179,16 +181,16 @@ public class QTMReportPublisher extends Recorder {
         } 
 		catch (QTMException e) 
 		{
-            System.out.println("QTMJenkinsPlugin : ERROR : " + e.toString());
-            listener.getLogger().println("QTMJenkinsPlugin : ERROR : " + e.getMessage());
+            System.out.println(pluginName + " : ERROR : " + e.toString());
+            listener.getLogger().println(pluginName + " : ERROR : " + e.getMessage());
         } 
 		catch (Exception e) 
 		{
-            System.out.println("QTMJenkinsPlugin : ERROR : " + e.toString());
-            listener.getLogger().println("QTMJenkinsPlugin : ERROR : Failed to complete build action!");
+            System.out.println(pluginName + " : ERROR : " + e.toString());
+            listener.getLogger().println(pluginName + " : ERROR : Failed to complete build action!");
         }
-        System.out.println("\nQTMJenkinsPlugin : Finished Post Build Action!");
-        listener.getLogger().println("\nQTMJenkinsPlugin : Finished Post Build Action!");
+        System.out.println("\n"+pluginName + " : Finished Post Build Action!");
+        listener.getLogger().println("\n" + pluginName + " : Finished Post Build Action!");
         return true;
     }
 
