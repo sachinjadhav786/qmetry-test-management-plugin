@@ -255,7 +255,7 @@ public class QTMReportPublisher extends Recorder {
 
         @Override
         public String getDisplayName() {
-            return "Publish Build Results(s) to QMetry Test Manager";
+            return "Publish Build Results(s) to QMetry Test Management";
         }
     }
 }
