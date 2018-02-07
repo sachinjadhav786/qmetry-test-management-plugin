@@ -7,13 +7,13 @@
         <version>2.33</version>
         <relativePath />
     </parent>
-    <artifactId>QTMJenkinsPlugin</artifactId>
+    <artifactId>qmetry-test-management</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <properties>
         <jenkins.version>2.7.3</jenkins.version>
     </properties>
-    <name>QTMJenkinsPlugin</name>
+    <name>QMetry Test Management</name>
     <description>Ship high quality products, faster by linking automated test results from Jenkins to QMetry Test Management.</description>
     <url>https://wiki.jenkins.io/display/JENKINS/Jenkins+Integration+-+QMetry+Test+Managment</url>
 	<dependencies>
