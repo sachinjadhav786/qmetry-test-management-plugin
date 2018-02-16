@@ -21,12 +21,12 @@
 			<f:select />
 		</f:entry>
 		
-		<f:entry title="Result File(s) Path" field="testResultFilePath">
+		<f:entry title="Result File(s) Path/Directory" field="testResultFilePath">
 			<f:textbox placeholder="/path/to/result.xml(.json)" />
 		</f:entry>
-	
+		
 		<f:entry title="Platform" field="platformName">
 			<f:textbox placeholder="Enter Platoform name or Id"/>
 		</f:entry>
-	</f:section>	
+	</f:section>
 </j:jelly>

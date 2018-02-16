@@ -1,4 +1,4 @@
-package com.icpl;
+package com.qmetry;
 
 import hudson.Extension;
 import hudson.Launcher;
@@ -82,11 +82,19 @@ public class QTMReportPublisher extends Recorder {
     }
 
     @Override
-    public boolean perform(final AbstractBuild build, final Launcher launcher, final BuildListener listener) 
+	public boolean perform(final AbstractBuild build, final Launcher launcher, final BuildListener listener)
 	{
 		String pluginName = "QMetry Test Management Plugin";
         try
 		{
+            String displayName = pluginName + " : Starting Post Build Action";
+            if (testSuiteName!=null && !testSuiteName.isEmpty()) 
+			{
+                displayName += " : " + testSuiteName;
+            }
+            String repeated = new String(new char[displayName.length()]).replace("\0", "-");
+            listener.getLogger().println("\n" + repeated + "\n" + displayName + "\n" + repeated);
+			
             String compfilepath = build.getWorkspace().toString() + "/" + getTestResultFilePath().trim();
             String buildName = getBuildName();
             String platformName = getPlatformName();
@@ -98,6 +106,9 @@ public class QTMReportPublisher extends Recorder {
 			else
 			{
 				testSuiteName = testSuiteName.trim();
+				if(!testSuiteName.isEmpty()) {
+					listener.getLogger().println(pluginName + " : Using Test Suite '"+testSuiteName+"'");
+				}
 			}
             if (buildName == null)
             {
@@ -106,6 +117,9 @@ public class QTMReportPublisher extends Recorder {
 			else
 			{
 				buildName = buildName.trim();
+				if(!buildName.isEmpty()) {
+					listener.getLogger().println(pluginName + " : Using Cycle '"+buildName+"'");
+				}
 			}
             if (platformName == null)
 			{
@@ -114,25 +128,19 @@ public class QTMReportPublisher extends Recorder {
 			else
 			{
 				platformName = platformName.trim();
+				if(!platformName.isEmpty()) {
+					listener.getLogger().println(pluginName + " : Using Platform '"+platformName+"'");
+				}
 			}
-            String displayName = pluginName + " : Starting Post Build Action";
-            if (!testSuiteName.isEmpty()) 
-			{
-                displayName += " : " + testSuiteName;
-            }
-            String repeated = new String(new char[displayName.length()]).replace("\0", "-");
-            listener.getLogger().println("\n\n" + repeated + "\n" + displayName + "\n" + repeated);
-            System.out.println("\n\n" + repeated + "\n" + displayName + "\n" + repeated);
 			
             File filePath = new File(compfilepath);
-			if(!filePath.exists()) throw new QTMException("Failed to read result file(s) at location '"+compfilepath+"'");
+			if(!filePath.exists()) throw new QMetryException("Failed to read result file(s) at location '"+compfilepath+"'");
             QTMApiConnection conn = new QTMApiConnection(getQtmUrl().trim(), getQtmAutomationApiKey().trim());
             synchronized (conn) 
 			{
                 // Upload Result Files
                 if (filePath.isDirectory()) 
 				{
-                    System.out.println(pluginName + " : Reading result files from Directory '"+compfilepath+"'");
                     listener.getLogger().println(pluginName + " : Reading result files from Directory '"+compfilepath+"'");
                     File[] listOfFiles = filePath.listFiles();
 
@@ -140,23 +148,17 @@ public class QTMReportPublisher extends Recorder {
 					{
                         if (listOfFiles[i].isFile() && (listOfFiles[i].getName().endsWith(".xml") || listOfFiles[i].getName().endsWith(".json"))) 
 						{
-                            System.out.println("\nQTMJenkinsPlugin : Result File Found '" + listOfFiles[i].getName() + "'");
                             listener.getLogger().println("\nQTMJenkinsPlugin : Result File Found '" + listOfFiles[i].getName() + "'");
                             try 
 							{
-                                System.out.println(pluginName + " : Uploading result file...");
                                 listener.getLogger().println(pluginName + " : Uploading result file...");
                                 String response = conn.uploadFileToTestSuite(listOfFiles[i].getAbsolutePath(), testSuiteName,
                                         getAutomationFramework(), buildName, platformName);
-								System.out.println(pluginName + " : Response : " + response);
                                 listener.getLogger().println(pluginName + " : Response : " + response);
-                                System.out.println(pluginName + " : Result file successfully uploaded!");
                                 listener.getLogger().println(pluginName + " : Result file successfully uploaded!");
                             } 
-							catch (QTMException e) 
+							catch (QMetryException e) 
 							{
-                                System.out.println(pluginName + " : ERROR : " + e.getMessage());
-                                System.out.println(pluginName + " : Failed to upload Result file!");
                                 listener.getLogger().println(pluginName + " : Failed to upload Result file!");
                             }
                         }
@@ -164,32 +166,22 @@ public class QTMReportPublisher extends Recorder {
                 }
 				else  if(filePath.isFile())
 				{
-                    System.out.println(pluginName + " : Reading result file '"+compfilepath+"'");
                     listener.getLogger().println(pluginName + " : Reading result file '"+compfilepath+"'");
-                    System.out.println(pluginName + " : Uploading result file...");
                     listener.getLogger().println(pluginName + " : Uploading result file...");
                     String response = conn.uploadFileToTestSuite(compfilepath, testSuiteName, getAutomationFramework(), buildName, platformName);
 					listener.getLogger().println(pluginName + " : Response : " + response);
-                    System.out.println(pluginName + " : Result file successfully uploaded!");
                     listener.getLogger().println(pluginName + " : Result file successfully uploaded!");
                 }
 				else
 				{
-					throw new QTMException("Failed to read result file(s) at location '"+compfilepath+"'");
+					throw new QMetryException("Failed to read result file(s) at location '"+compfilepath+"'");
 				}
             } // connection synchronized block
         } 
-		catch (QTMException e) 
-		{
-            System.out.println(pluginName + " : ERROR : " + e.toString());
-            listener.getLogger().println(pluginName + " : ERROR : " + e.getMessage());
-        } 
 		catch (Exception e) 
 		{
-            System.out.println(pluginName + " : ERROR : " + e.toString());
-            listener.getLogger().println(pluginName + " : ERROR : Failed to complete build action!");
+            listener.getLogger().println(pluginName + " : ERROR : " + e.toString());
         }
-        System.out.println("\n"+pluginName + " : Finished Post Build Action!");
         listener.getLogger().println("\n" + pluginName + " : Finished Post Build Action!");
         return true;
     }
@@ -255,7 +247,7 @@ public class QTMReportPublisher extends Recorder {
 
         @Override
         public String getDisplayName() {
-            return "Publish Build Results(s) to QMetry Test Management";
+            return "Publish Build Result(s) to QMetry Test Management";
         }
     }
 }

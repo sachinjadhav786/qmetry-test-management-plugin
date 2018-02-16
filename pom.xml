@@ -15,7 +15,7 @@
     </properties>
     <name>QMetry Test Management Plugin</name>
     <description>Ship high quality products, faster by linking automated test results from Jenkins to QMetry Test Management.</description>
-    <url>https://wiki.jenkins.io/display/JENKINS/Jenkins+Integration+-+QMetry+Test+Managment</url>
+    <url>https://wiki.jenkins.io/display/JENKINS/QMetry+Test+Managment+Plugin</url>
 	<dependencies>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
