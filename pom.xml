@@ -96,7 +96,7 @@
         </pluginRepository>
     </pluginRepositories>
 	
-	
+
 	<developers>
 		<developer>
 			<id>priyankashah1224</id>
@@ -104,5 +104,5 @@
 			<email>priyanka.shah@infostretch.com</email>
 		</developer>
 	</developers>
-  
+
 </project>

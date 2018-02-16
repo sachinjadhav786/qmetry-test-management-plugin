@@ -88,13 +88,33 @@ public class QTMReportPublisher extends Recorder {
         try
 		{
             String displayName = pluginName + " : Starting Post Build Action";
-            if (testSuiteName!=null && !testSuiteName.isEmpty()) 
+            if (this.testSuiteName!=null && !this.testSuiteName.isEmpty()) 
 			{
-                displayName += " : " + testSuiteName;
+                displayName += " : " + this.testSuiteName;
             }
             String repeated = new String(new char[displayName.length()]).replace("\0", "-");
             listener.getLogger().println("\n" + repeated + "\n" + displayName + "\n" + repeated);
-			
+			if(getQtmUrl() == null || getQtmUrl().isEmpty())
+			{
+				throw new QMetryException("Please enter a valid URL to QMetry Test Management in configuration form");
+			}
+			if(getQtmAutomationApiKey() == null || getQtmAutomationApiKey().isEmpty())
+			{
+				throw new QMetryException("Please enter a valid QMetry Test Management automation API Key in configuration form");
+			}
+			if(getAutomationFramework() == null || getAutomationFramework().isEmpty() 
+				|| !(getAutomationFramework().equals("CUCUMBER") 
+						|| getAutomationFramework().equals("TESTNG")
+						|| getAutomationFramework().equals("JUNIT")
+						|| getAutomationFramework().equals("QAS")
+						|| getAutomationFramework().equals("HPUFT")))
+			{
+				throw new QMetryException("Please enter a valid automation framework in configuration form [CUCUMBER/JUNIT/TESTNG/QAS/HPUFT]");
+			}
+			if(getTestResultFilePath() == null || getTestResultFilePath().isEmpty())
+			{
+				throw new QMetryException("Please enter a valid path to your test result file(s) path/directory in configuration form");
+			}
             String compfilepath = build.getWorkspace().toString() + "/" + getTestResultFilePath().trim();
             String buildName = getBuildName();
             String platformName = getPlatformName();
@@ -134,7 +154,8 @@ public class QTMReportPublisher extends Recorder {
 			}
 			
             File filePath = new File(compfilepath);
-			if(!filePath.exists()) throw new QMetryException("Failed to read result file(s) at location '"+compfilepath+"'");
+			if(filePath==null || !filePath.exists()) throw new QMetryException("Failed to read result file(s) at location '"+compfilepath+"'");
+			compfilepath = filePath.getAbsolutePath();
             QTMApiConnection conn = new QTMApiConnection(getQtmUrl().trim(), getQtmAutomationApiKey().trim());
             synchronized (conn) 
 			{
@@ -177,12 +198,13 @@ public class QTMReportPublisher extends Recorder {
 					throw new QMetryException("Failed to read result file(s) at location '"+compfilepath+"'");
 				}
             } // connection synchronized block
-        } 
+        }
 		catch (Exception e) 
 		{
             listener.getLogger().println(pluginName + " : ERROR : " + e.toString());
+			return false;
         }
-        listener.getLogger().println("\n" + pluginName + " : Finished Post Build Action!");
+        listener.getLogger().println("\n" + pluginName + " : Successfully finished Post Build Action!");
         return true;
     }
 
@@ -204,7 +226,7 @@ public class QTMReportPublisher extends Recorder {
             items.add("Junit", "JUNIT");
             items.add("TestNG", "TESTNG");
             items.add("QAS", "QAS");
-            items.add("HP UFT", "HPUFT");
+            items.add("HP-UFT", "HPUFT");
             return items;
         }
 

@@ -76,20 +76,15 @@ public class QTMApiConnection {
             httpClient = HttpClients.createDefault();
             response = httpClient.execute(uploadFile);
             String respEntityStr = EntityUtils.toString(response.getEntity());
-			System.out.println("QMetry Test Management Plugin : Response : " + respEntityStr);
             if (!(response.getStatusLine().getStatusCode() == 200)) 
 			{
                 throw new QMetryException("Error uploading file to server!");
             }
+			httpClient.close();
+			response.close();
             return respEntityStr;
         } catch (Exception e) {
             throw new QMetryException("Could not upload file '" + filePath + "'");
-        } finally {
-            try {
-                httpClient.close();
-                response.close();
-            } catch (Exception e) {
-            }
         }
     }
 }
