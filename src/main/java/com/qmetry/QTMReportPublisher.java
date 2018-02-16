@@ -17,6 +17,8 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.File;
 import java.util.Map;
+import org.apache.commons.httpclient.auth.InvalidCredentialsException;
+import java.net.ProtocolException;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
@@ -87,76 +89,86 @@ public class QTMReportPublisher extends Recorder {
 		String pluginName = "QMetry Test Management Plugin";
         try
 		{
+			String qtmUrl_chkd = getQtmUrl();
+			String qtmAutomationApiKey_chkd = getQtmAutomationApiKey();
+			String automationFramework_chkd = getAutomationFramework();
+			String testResultFilePath_chkd = getTestResultFilePath();
+            String buildName_chkd = getBuildName();
+            String platformName_chkd = getPlatformName();
+            String testSuiteName_chkd = getTestSuiteName();
             String displayName = pluginName + " : Starting Post Build Action";
-            if (this.testSuiteName!=null && !this.testSuiteName.isEmpty()) 
+
+            if (testSuiteName_chkd!=null && !testSuiteName_chkd.isEmpty()) 
 			{
-                displayName += " : " + this.testSuiteName;
+                displayName += " : " + testSuiteName_chkd;
             }
             String repeated = new String(new char[displayName.length()]).replace("\0", "-");
             listener.getLogger().println("\n" + repeated + "\n" + displayName + "\n" + repeated);
-			if(getQtmUrl() == null || getQtmUrl().isEmpty())
+			
+			if(qtmUrl_chkd == null || qtmUrl_chkd.isEmpty())
 			{
 				throw new QMetryException("Please enter a valid URL to QMetry Test Management in configuration form");
 			}
-			if(getQtmAutomationApiKey() == null || getQtmAutomationApiKey().isEmpty())
+			else
+			{
+				qtmUrl_chkd = qtmUrl_chkd.trim();
+			}
+			if(qtmAutomationApiKey_chkd == null || qtmAutomationApiKey_chkd.isEmpty())
 			{
 				throw new QMetryException("Please enter a valid QMetry Test Management automation API Key in configuration form");
 			}
-			if(getAutomationFramework() == null || getAutomationFramework().isEmpty() 
+			else
+			{
+				qtmAutomationApiKey_chkd = qtmAutomationApiKey_chkd.trim();
+			}
+			if(automationFramework_chkd == null || automationFramework_chkd.isEmpty() 
 				|| !(getAutomationFramework().equals("CUCUMBER") 
-						|| getAutomationFramework().equals("TESTNG")
-						|| getAutomationFramework().equals("JUNIT")
-						|| getAutomationFramework().equals("QAS")
-						|| getAutomationFramework().equals("HPUFT")))
+						|| automationFramework_chkd.equals("TESTNG")
+						|| automationFramework_chkd.equals("JUNIT")
+						|| automationFramework_chkd.equals("QAS")
+						|| automationFramework_chkd.equals("HPUFT")))
 			{
 				throw new QMetryException("Please enter a valid automation framework in configuration form [CUCUMBER/JUNIT/TESTNG/QAS/HPUFT]");
 			}
-			if(getTestResultFilePath() == null || getTestResultFilePath().isEmpty())
+			else
+			{
+				automationFramework_chkd = automationFramework_chkd.trim();
+			}
+			if(testResultFilePath_chkd == null || testResultFilePath_chkd.isEmpty())
 			{
 				throw new QMetryException("Please enter a valid path to your test result file(s) path/directory in configuration form");
 			}
-            String compfilepath = build.getWorkspace().toString() + "/" + getTestResultFilePath().trim();
-            String buildName = getBuildName();
-            String platformName = getPlatformName();
-            String testSuiteName = getTestSuiteName();
-            if (testSuiteName == null)
-			{
-				testSuiteName = "";
-			}
 			else
 			{
-				testSuiteName = testSuiteName.trim();
-				if(!testSuiteName.isEmpty()) {
-					listener.getLogger().println(pluginName + " : Using Test Suite '"+testSuiteName+"'");
+				testResultFilePath_chkd = testResultFilePath_chkd.trim();
+			}
+            String compfilepath = build.getWorkspace() + "/" + testResultFilePath_chkd.trim();
+            if (testSuiteName_chkd != null)
+			{
+				testSuiteName_chkd = testSuiteName_chkd.trim();
+				if(!testSuiteName_chkd.isEmpty()) {
+					listener.getLogger().println(pluginName + " : Using Test Suite '"+testSuiteName_chkd+"'");
 				}
 			}
-            if (buildName == null)
-            {
-				buildName = "";
-			}
-			else
+            if (buildName_chkd != null)
 			{
-				buildName = buildName.trim();
+				buildName_chkd = buildName_chkd.trim();
 				if(!buildName.isEmpty()) {
-					listener.getLogger().println(pluginName + " : Using Cycle '"+buildName+"'");
+					listener.getLogger().println(pluginName + " : Using Cycle '"+buildName_chkd+"'");
 				}
 			}
-            if (platformName == null)
+            if (platformName_chkd != null)
 			{
-                platformName = "";
-			}
-			else
-			{
-				platformName = platformName.trim();
-				if(!platformName.isEmpty()) {
-					listener.getLogger().println(pluginName + " : Using Platform '"+platformName+"'");
+				platformName_chkd = platformName_chkd.trim();
+				if(!platformName_chkd.isEmpty()) {
+					listener.getLogger().println(pluginName + " : Using Platform '"+platformName_chkd+"'");
 				}
 			}
 			
             File filePath = new File(compfilepath);
 			if(filePath==null || !filePath.exists()) throw new QMetryException("Failed to read result file(s) at location '"+compfilepath+"'");
 			compfilepath = filePath.getAbsolutePath();
-            QTMApiConnection conn = new QTMApiConnection(getQtmUrl().trim(), getQtmAutomationApiKey().trim());
+            QTMApiConnection conn = new QTMApiConnection(qtmUrl_chkd, qtmAutomationApiKey_chkd);
             synchronized (conn) 
 			{
                 // Upload Result Files
@@ -164,17 +176,18 @@ public class QTMReportPublisher extends Recorder {
 				{
                     listener.getLogger().println(pluginName + " : Reading result files from Directory '"+compfilepath+"'");
                     File[] listOfFiles = filePath.listFiles();
-
+					if(listOfFiles == null)
+						throw new QMetryException(pluginName + " : No result file(s) found in directory '"+compfilepath+"'");
                     for (int i = 0; i < listOfFiles.length; i++) 
 					{
                         if (listOfFiles[i].isFile() && (listOfFiles[i].getName().endsWith(".xml") || listOfFiles[i].getName().endsWith(".json"))) 
 						{
-                            listener.getLogger().println("\nQTMJenkinsPlugin : Result File Found '" + listOfFiles[i].getName() + "'");
+                            listener.getLogger().println(pluginName + " : Result File Found '" + listOfFiles[i].getName() + "'");
                             try 
 							{
                                 listener.getLogger().println(pluginName + " : Uploading result file...");
-                                String response = conn.uploadFileToTestSuite(listOfFiles[i].getAbsolutePath(), testSuiteName,
-                                        getAutomationFramework(), buildName, platformName);
+                                String response = conn.uploadFileToTestSuite(listOfFiles[i].getAbsolutePath(), testSuiteName_chkd,
+                                        automationFramework_chkd, buildName_chkd, platformName_chkd);
                                 listener.getLogger().println(pluginName + " : Response : " + response);
                                 listener.getLogger().println(pluginName + " : Result file successfully uploaded!");
                             } 
@@ -189,7 +202,7 @@ public class QTMReportPublisher extends Recorder {
 				{
                     listener.getLogger().println(pluginName + " : Reading result file '"+compfilepath+"'");
                     listener.getLogger().println(pluginName + " : Uploading result file...");
-                    String response = conn.uploadFileToTestSuite(compfilepath, testSuiteName, getAutomationFramework(), buildName, platformName);
+                    String response = conn.uploadFileToTestSuite(compfilepath, testSuiteName_chkd, automationFramework_chkd, buildName_chkd, platformName_chkd);
 					listener.getLogger().println(pluginName + " : Response : " + response);
                     listener.getLogger().println(pluginName + " : Result file successfully uploaded!");
                 }
@@ -199,7 +212,22 @@ public class QTMReportPublisher extends Recorder {
 				}
             } // connection synchronized block
         }
-		catch (Exception e) 
+		catch(ProtocolException e)
+		{
+            listener.getLogger().println(pluginName + " : ERROR : " + e.toString());
+			return false;
+		}
+		catch(InvalidCredentialsException e)
+		{
+            listener.getLogger().println(pluginName + " : ERROR : " + e.toString());
+			return false;
+		}
+		catch(java.io.IOException e)
+		{
+            listener.getLogger().println(pluginName + " : ERROR : " + e.toString());
+			return false;
+		}
+		catch (QMetryException e) 
 		{
             listener.getLogger().println(pluginName + " : ERROR : " + e.toString());
 			return false;

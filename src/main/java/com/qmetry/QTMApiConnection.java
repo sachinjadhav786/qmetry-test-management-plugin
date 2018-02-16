@@ -53,38 +53,35 @@ public class QTMApiConnection {
             throws InvalidCredentialsException, ProtocolException, IOException, QMetryException {
         CloseableHttpClient httpClient = null;
         CloseableHttpResponse response = null;
-        try {
-            MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-            builder.addTextBody("entityType", automationFramework, ContentType.TEXT_PLAIN);
-			if(testSuiteName!=null && !testSuiteName.isEmpty())
-				builder.addTextBody("testsuiteId", testSuiteName, ContentType.TEXT_PLAIN);
-            if(buildName!=null && !buildName.isEmpty())
-				builder.addTextBody("buildID", buildName, ContentType.TEXT_PLAIN);
-            if(platformName!=null && !platformName.isEmpty())
-				builder.addTextBody("platformID", platformName, ContentType.TEXT_PLAIN);
+		
+		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+		builder.addTextBody("entityType", automationFramework, ContentType.TEXT_PLAIN);
+		if(testSuiteName!=null && !testSuiteName.isEmpty())
+			builder.addTextBody("testsuiteId", testSuiteName, ContentType.TEXT_PLAIN);
+		if(buildName!=null && !buildName.isEmpty())
+			builder.addTextBody("buildID", buildName, ContentType.TEXT_PLAIN);
+		if(platformName!=null && !platformName.isEmpty())
+			builder.addTextBody("platformID", platformName, ContentType.TEXT_PLAIN);
 
-            File f = new File(filePath);
-            builder.addPart("file", new FileBody(f));
-            HttpEntity multipart = builder.build();
+		File f = new File(filePath);
+		builder.addPart("file", new FileBody(f));
+		HttpEntity multipart = builder.build();
 
-            HttpPost uploadFile = new HttpPost(getUrl() + "/rest/import/createandscheduletestresults/1");
-            uploadFile.addHeader("accept", "application/json");
-            uploadFile.addHeader("scope", "default");
-            uploadFile.addHeader("apiKey", getKey());
-            uploadFile.setEntity(multipart);
+		HttpPost uploadFile = new HttpPost(getUrl() + "/rest/import/createandscheduletestresults/1");
+		uploadFile.addHeader("accept", "application/json");
+		uploadFile.addHeader("scope", "default");
+		uploadFile.addHeader("apiKey", getKey());
+		uploadFile.setEntity(multipart);
 
-            httpClient = HttpClients.createDefault();
-            response = httpClient.execute(uploadFile);
-            String respEntityStr = EntityUtils.toString(response.getEntity());
-            if (!(response.getStatusLine().getStatusCode() == 200)) 
-			{
-                throw new QMetryException("Error uploading file to server!");
-            }
-			httpClient.close();
-			response.close();
-            return respEntityStr;
-        } catch (Exception e) {
-            throw new QMetryException("Could not upload file '" + filePath + "'");
-        }
-    }
+		httpClient = HttpClients.createDefault();
+		response = httpClient.execute(uploadFile);
+		String respEntityStr = EntityUtils.toString(response.getEntity());
+		if (!(response.getStatusLine().getStatusCode() == 200)) 
+		{
+			throw new QMetryException("Error uploading file to server!");
+		}
+		httpClient.close();
+		response.close();
+		return respEntityStr;
+	}
 }
