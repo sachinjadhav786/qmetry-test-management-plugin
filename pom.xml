@@ -95,4 +95,14 @@
             <url>https://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
+	
+	
+	<developers>
+		<developer>
+			<id>priyankashah1224</id>
+			<name>Priyanka Shah</name>
+			<email>priyanka.shah@infostretch.com</email>
+		</developer>
+	</developers>
+  
 </project>
