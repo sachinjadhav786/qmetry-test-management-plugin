@@ -20,8 +20,8 @@
         <connection>scm:git:ssh://github.com/jenkinsci/qmetry-test-management-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/qmetry-test-management-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/qmetry-test-management-plugin</url>
-      <tag>HEAD</tag>
-  </scm>
+		<tag>HEAD</tag>
+	</scm>
     <dependencies>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>

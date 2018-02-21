@@ -75,14 +75,6 @@ public class QTMReportPublisher extends Recorder {
         return this.platformName;
     }
 
-    public String getParsedQtmUrl() {
-        if (!getQtmUrl().endsWith("/")) {
-            return getQtmUrl() + "/";
-        } else {
-            return getQtmUrl();
-        }
-    }
-
     @Override
 	public boolean perform(final AbstractBuild build, final Launcher launcher, final BuildListener listener)
 	{

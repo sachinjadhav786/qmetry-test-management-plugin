@@ -1,7 +1,7 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"> 
 	<f:section title="Qmetry Configuration">
-		<f:entry title="Automation API URL" field="qtmUrl">
+		<f:entry title="QMetry URL" field="qtmUrl">
 			<f:textbox placeholder="https://qtm-instance-uri/" />
 		</f:entry>
 		
