@@ -114,7 +114,7 @@ public class QTMReportPublisher extends Recorder {
 				qtmAutomationApiKey_chkd = qtmAutomationApiKey_chkd.trim();
 			}
 			if(automationFramework_chkd == null || automationFramework_chkd.isEmpty() 
-				|| !(getAutomationFramework().equals("CUCUMBER") 
+				|| !(automationFramework_chkd.equals("CUCUMBER") 
 						|| automationFramework_chkd.equals("TESTNG")
 						|| automationFramework_chkd.equals("JUNIT")
 						|| automationFramework_chkd.equals("QAS")
@@ -160,65 +160,18 @@ public class QTMReportPublisher extends Recorder {
             File filePath = new File(compfilepath);
 			if(filePath==null || !filePath.exists()) throw new QMetryException("Failed to read result file(s) at location '"+compfilepath+"'");
 			compfilepath = filePath.getAbsolutePath();
-            QTMApiConnection conn = new QTMApiConnection(qtmUrl_chkd, qtmAutomationApiKey_chkd);
-            synchronized (conn) 
-			{
-                // Upload Result Files
-                if (filePath.isDirectory()) 
-				{
-                    listener.getLogger().println(pluginName + " : Reading result files from Directory '"+compfilepath+"'");
-                    File[] listOfFiles = filePath.listFiles();
-					if(listOfFiles == null)
-						throw new QMetryException(pluginName + " : No result file(s) found in directory '"+compfilepath+"'");
-                    for (int i = 0; i < listOfFiles.length; i++) 
-					{
-                        if (listOfFiles[i].isFile() && (listOfFiles[i].getName().endsWith(".xml") || listOfFiles[i].getName().endsWith(".json"))) 
-						{
-                            listener.getLogger().println(pluginName + " : Result File Found '" + listOfFiles[i].getName() + "'");
-                            try 
-							{
-                                listener.getLogger().println(pluginName + " : Uploading result file...");
-                                String response = conn.uploadFileToTestSuite(listOfFiles[i].getAbsolutePath(), testSuiteName_chkd,
-                                        automationFramework_chkd, buildName_chkd, platformName_chkd);
-                                listener.getLogger().println(pluginName + " : Response : " + response);
-                                listener.getLogger().println(pluginName + " : Result file successfully uploaded!");
-                            } 
-							catch (QMetryException e) 
-							{
-                                listener.getLogger().println(pluginName + " : Failed to upload Result file!");
-                            }
-                        }
-                    }
-                }
-				else  if(filePath.isFile())
-				{
-                    listener.getLogger().println(pluginName + " : Reading result file '"+compfilepath+"'");
-                    listener.getLogger().println(pluginName + " : Uploading result file...");
-                    String response = conn.uploadFileToTestSuite(compfilepath, testSuiteName_chkd, automationFramework_chkd, buildName_chkd, platformName_chkd);
-					listener.getLogger().println(pluginName + " : Response : " + response);
-                    listener.getLogger().println(pluginName + " : Result file successfully uploaded!");
-                }
-				else
-				{
-					throw new QMetryException("Failed to read result file(s) at location '"+compfilepath+"'");
-				}
-            } // connection synchronized block
+			
+			QMetryResultUtil resultUtil = new QMetryResultUtil();
+			resultUtil.uploadResultFilesToQMetry(pluginName, 
+												listener, 
+												qtmUrl_chkd, 
+												qtmAutomationApiKey_chkd, 
+												filePath, 
+												testSuiteName_chkd, 
+												automationFramework_chkd,
+												buildName_chkd,
+												platformName_chkd);
         }
-		catch(ProtocolException e)
-		{
-            listener.getLogger().println(pluginName + " : ERROR : " + e.toString());
-			return false;
-		}
-		catch(InvalidCredentialsException e)
-		{
-            listener.getLogger().println(pluginName + " : ERROR : " + e.toString());
-			return false;
-		}
-		catch(java.io.IOException e)
-		{
-            listener.getLogger().println(pluginName + " : ERROR : " + e.toString());
-			return false;
-		}
 		catch (QMetryException e) 
 		{
             listener.getLogger().println(pluginName + " : ERROR : " + e.toString());
