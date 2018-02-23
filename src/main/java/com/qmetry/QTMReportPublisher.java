@@ -133,8 +133,8 @@ public class QTMReportPublisher extends Recorder {
 			else
 			{
 				testResultFilePath_chkd = testResultFilePath_chkd.trim();
+				testResultFilePath_chkd = testResultFilePath_chkd.replace("\\","/");
 			}
-            String compfilepath = build.getWorkspace() + "/" + testResultFilePath_chkd.trim();
             if (testSuiteName_chkd != null)
 			{
 				testSuiteName_chkd = testSuiteName_chkd.trim();
@@ -156,10 +156,9 @@ public class QTMReportPublisher extends Recorder {
 					listener.getLogger().println(pluginName + " : Using Platform '"+platformName_chkd+"'");
 				}
 			}
-			
-            File filePath = new File(compfilepath);
-			if(filePath==null || !filePath.exists()) throw new QMetryException("Failed to read result file(s) at location '"+compfilepath+"'");
-			compfilepath = filePath.getAbsolutePath();
+			File wordspaceFile = new File(build.getWorkspace().toString());
+            File filePath = new File(wordspaceFile, testResultFilePath_chkd);
+			if(filePath==null || !filePath.exists()) throw new QMetryException("Failed to read result file(s) at location '"+wordspaceFile.getAbsolutePath()+"/"+testResultFilePath_chkd+"'");
 			
 			QMetryResultUtil resultUtil = new QMetryResultUtil();
 			resultUtil.uploadResultFilesToQMetry(pluginName, 
