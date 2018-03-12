@@ -34,10 +34,14 @@ public class QTMReportPublisher extends Recorder {
     private final String buildName;
     private final String testSuiteName;
     private final String platformName;
+	private final String project;
+	private final String release;
+	private final String cycle;
 
     @DataBoundConstructor
     public QTMReportPublisher(final String qtmUrl, final String qtmAutomationApiKey, final String automationFramework,
-            final String testResultFilePath, final String buildName, final String testSuiteName, final String platformName) {
+            final String testResultFilePath, final String buildName, final String testSuiteName, final String platformName,
+			final String project, final String release, final String cycle) {
         this.qtmUrl = qtmUrl;
         this.qtmAutomationApiKey = qtmAutomationApiKey;
         this.automationFramework = automationFramework;
@@ -45,6 +49,9 @@ public class QTMReportPublisher extends Recorder {
         this.buildName = buildName;
         this.testSuiteName = testSuiteName;
         this.platformName = platformName;
+		this.project = project;
+		this.cycle = cycle;
+		this.release = release;
     }
 
     public String getQtmUrl() {
@@ -74,6 +81,18 @@ public class QTMReportPublisher extends Recorder {
     public String getPlatformName() {
         return this.platformName;
     }
+	
+	public String getProject() {
+		return this.project;
+	}
+	
+	public String getRelease() {
+		return this.release;
+	}
+	
+	public String getCycle() {
+		return this.cycle;
+	}
 
     @Override
 	public boolean perform(final AbstractBuild build, final Launcher launcher, final BuildListener listener)
@@ -88,6 +107,9 @@ public class QTMReportPublisher extends Recorder {
             String buildName_chkd = getBuildName();
             String platformName_chkd = getPlatformName();
             String testSuiteName_chkd = getTestSuiteName();
+			String release_chkd = getRelease();
+			String cycle_chkd = getCycle();
+			String project_chkd = getProject();
             String displayName = pluginName + " : Starting Post Build Action";
 
             if (testSuiteName_chkd!=null && !testSuiteName_chkd.isEmpty()) 
@@ -142,14 +164,35 @@ public class QTMReportPublisher extends Recorder {
 					listener.getLogger().println(pluginName + " : Using Test Suite '"+testSuiteName_chkd+"'");
 				}
 			}
+            if(project_chkd != null)
+			{
+				project_chkd = project_chkd.trim();
+				if(!project_chkd.isEmpty()) {
+					listener.getLogger().println(pluginName + " : Using Project '"+project_chkd+"'");
+				}
+			}
+            if(release_chkd != null)
+			{
+				release_chkd = release_chkd.trim();
+				if(!release_chkd.isEmpty()) {
+					listener.getLogger().println(pluginName + " : Using Release '"+release_chkd+"'");
+				}
+			}
+            if(cycle_chkd != null)
+			{
+				cycle_chkd = cycle_chkd.trim();
+				if(!cycle_chkd.isEmpty()) {
+					listener.getLogger().println(pluginName + " : Using Cycle '"+cycle_chkd+"'");
+				}
+			}
             if (buildName_chkd != null)
 			{
 				buildName_chkd = buildName_chkd.trim();
 				if(!buildName.isEmpty()) {
-					listener.getLogger().println(pluginName + " : Using Cycle '"+buildName_chkd+"'");
+					listener.getLogger().println(pluginName + " : Using Drop (Build) '"+buildName_chkd+"'");
 				}
 			}
-            if (platformName_chkd != null)
+            if(platformName_chkd != null)
 			{
 				platformName_chkd = platformName_chkd.trim();
 				if(!platformName_chkd.isEmpty()) {
@@ -169,7 +212,10 @@ public class QTMReportPublisher extends Recorder {
 												testSuiteName_chkd, 
 												automationFramework_chkd,
 												buildName_chkd,
-												platformName_chkd);
+												platformName_chkd,
+												project_chkd,
+												release_chkd,
+												cycle_chkd);
         }
 		catch (QMetryException e) 
 		{
@@ -230,6 +276,27 @@ public class QTMReportPublisher extends Recorder {
                 throws IOException, ServletException {
             if (automationFramework == null) {
                 return FormValidation.error("Please select an Automation Framework!");
+            }
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckCycle(@QueryParameter String project, @QueryParameter String release, @QueryParameter String cycle)
+                throws IOException, ServletException {
+			if(cycle !=null && cycle.length()>0) {
+				if (project == null || project=="" || project.length()<2) {
+					return FormValidation.error("Please provide project ID, Key or Name!");
+				} else if(release==null || release=="" || release.length()<2) {
+					return FormValidation.error("Please provide release ID or Name!");
+				}
+			}
+            return FormValidation.ok();
+        }
+
+
+        public FormValidation doCheckRelease(@QueryParameter String project, @QueryParameter String release)
+                throws IOException, ServletException {
+            if (release!=null && release.length() > 0 && (project == null || project=="" || project.length()<2)) {
+                return FormValidation.error("Please provide project ID, Key or Name!");
             }
             return FormValidation.ok();
         }

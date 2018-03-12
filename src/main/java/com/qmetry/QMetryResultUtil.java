@@ -14,7 +14,10 @@ public class QMetryResultUtil
 											String testSuiteName,
 											String automationFramework,
 											String buildName,
-											String platformName) throws QMetryException
+											String platformName,
+											String project,
+											String release,
+											String cycle) throws QMetryException
 	{
 		String extension = null;
 		if(automationFramework.equals("CUCUMBER") || automationFramework.equals("QAS"))
@@ -54,7 +57,7 @@ public class QMetryResultUtil
 			File zipArchive = new File(latest_dir, "qmetry_result.zip");
 			if(zipArchive==null || !zipArchive.exists())
 				throw new QMetryException("Failed to create zip archive for QAS results at directory '"+latest_dir.getAbsolutePath()+"'");
-			conn.uploadFileToTestSuite(zipArchive.getAbsolutePath(), testSuiteName, automationFramework, buildName, platformName, pluginName, listener);
+			conn.uploadFileToTestSuite(zipArchive.getAbsolutePath(), testSuiteName, automationFramework, buildName, platformName, project, release, cycle, pluginName, listener);
 		}
 		else if (resultFile.isDirectory()) 
 		{
@@ -71,7 +74,7 @@ public class QMetryResultUtil
 					{
 						listener.getLogger().println(pluginName + " : Uploading result file...");
 						conn.uploadFileToTestSuite(file.getAbsolutePath(), testSuiteName,
-																		automationFramework, buildName, platformName, pluginName, listener);
+																		automationFramework, buildName, platformName, project, release, cycle, pluginName, listener);
 						listener.getLogger().println(pluginName + " : Result file successfully uploaded!");
 					} 
 					catch (QMetryException e) 
@@ -85,7 +88,7 @@ public class QMetryResultUtil
 		{
 			listener.getLogger().println(pluginName + " : Reading result file '"+resultFile.getAbsolutePath()+"'");
 			listener.getLogger().println(pluginName + " : Uploading result file...");
-			conn.uploadFileToTestSuite(resultFile.getAbsolutePath(), testSuiteName, automationFramework, buildName, platformName, pluginName, listener);
+			conn.uploadFileToTestSuite(resultFile.getAbsolutePath(), testSuiteName, automationFramework, buildName, platformName, project, release, cycle, pluginName, listener);
 			listener.getLogger().println(pluginName + " : Result file successfully uploaded!");
 		}
 		else

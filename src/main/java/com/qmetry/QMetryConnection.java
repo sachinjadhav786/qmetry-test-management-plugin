@@ -51,7 +51,7 @@ public class QMetryConnection {
     }
 
     public void uploadFileToTestSuite(String filePath, String testSuiteName, String automationFramework,
-            String buildName, String platformName, String pluginName, BuildListener listener)
+            String buildName, String platformName, String project, String release, String cycle, String pluginName, BuildListener listener)
             throws QMetryException {
 		try
 		{
@@ -63,9 +63,15 @@ public class QMetryConnection {
 			if(testSuiteName!=null && !testSuiteName.isEmpty())
 				builder.addTextBody("testsuiteId", testSuiteName, ContentType.TEXT_PLAIN);
 			if(buildName!=null && !buildName.isEmpty())
-				builder.addTextBody("buildID", buildName, ContentType.TEXT_PLAIN);
+				builder.addTextBody("dropID", buildName, ContentType.TEXT_PLAIN);
 			if(platformName!=null && !platformName.isEmpty())
 				builder.addTextBody("platformID", platformName, ContentType.TEXT_PLAIN);
+			if(cycle!=null && !cycle.isEmpty())
+				builder.addTextBody("cycleID", cycle, ContentType.TEXT_PLAIN);
+			if(project!=null && !project.isEmpty())
+				builder.addTextBody("projectID", project, ContentType.TEXT_PLAIN);
+			if(release!=null && !release.isEmpty())
+				builder.addTextBody("releaseID", release, ContentType.TEXT_PLAIN);
 
 			File f = new File(filePath);
 			builder.addPart("file", new FileBody(f));
