@@ -280,6 +280,14 @@ public class QTMReportPublisher extends Recorder {
             return FormValidation.ok();
         }
 
+        public FormValidation doCheckProject(@QueryParameter String project)
+                throws IOException, ServletException {
+			if (project == null || project.length()<2) {
+				return FormValidation.error("Please provide project ID, Key or Name!");
+			}
+            return FormValidation.ok();
+        }
+		
         public FormValidation doCheckCycle(@QueryParameter String project, @QueryParameter String release, @QueryParameter String cycle)
                 throws IOException, ServletException {
 			if(cycle !=null && cycle.length()>0) {
@@ -291,7 +299,6 @@ public class QTMReportPublisher extends Recorder {
 			}
             return FormValidation.ok();
         }
-
 
         public FormValidation doCheckRelease(@QueryParameter String project, @QueryParameter String release)
                 throws IOException, ServletException {
