@@ -217,8 +217,14 @@ public class QTMReportPublisher extends Recorder {
 												release_chkd,
 												cycle_chkd);
         }
+		catch(NullPointerException e) {
+			e.printStackTrace();
+            listener.getLogger().println(pluginName + " : Failed to upload test result file(s) to server!");
+			return false;
+		}
 		catch (QMetryException e) 
 		{
+			e.printStackTrace();
             listener.getLogger().println(pluginName + " : ERROR : " + e.toString());
 			return false;
         }

@@ -12,32 +12,43 @@ import hudson.model.BuildListener;
 
 public class ZipUtils 
 {
-	private static String extension;
+	private String extension;
 	
 	public ZipUtils(String extension)
 	{
 		this.extension = extension;
 	}
 	
-	public static void zipDirectory(File sourceDir, String zipFileName, String pluginName, BuildListener listener) throws QMetryException 
+	public void zipDirectory(File sourceDir, String zipFileName, String pluginName, BuildListener listener) throws QMetryException 
 	{
+		FileOutputStream fout = null;
+		ZipOutputStream zout = null;
 		try
 		{
 			listener.getLogger().println(pluginName + " : Creating zip archive at directory '"+sourceDir+"'");
-			FileOutputStream fout = new FileOutputStream((sourceDir.getAbsolutePath() + "/" + zipFileName), false);
-			ZipOutputStream zout = new ZipOutputStream(fout);
+			fout = new FileOutputStream((sourceDir.getAbsolutePath() + "/" + zipFileName), false);
+			zout = new ZipOutputStream(fout);
 			zipSubDirectory("", sourceDir, zout, pluginName, listener);
-			zout.close();
 			listener.getLogger().println(pluginName + " : Zip file created successfully '"+zipFileName+"'");
 		}
 		catch(IOException e)
 		{
 			throw new QMetryException("Failed to create zip archive in directory '"+sourceDir+"'");
 		}
+		finally
+		{
+			try {
+			if(fout != null) fout.close();
+			if(zout != null) zout.close();
+			} catch(IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
-	private static void zipSubDirectory(String basePath, File dir, ZipOutputStream zout, String pluginName, BuildListener listener) throws IOException, QMetryException
+	private void zipSubDirectory(String basePath, File dir, ZipOutputStream zout, String pluginName, BuildListener listener) throws IOException, QMetryException
 	{
+		FileInputStream fin = null;
 		try
 		{
 			byte[] buffer = new byte[4096];
@@ -54,7 +65,7 @@ public class ZipUtils
 				else if(file.getName().endsWith(extension))
 				{
 					listener.getLogger().println(pluginName + " : adding result file to zip archive : '"+file.getAbsolutePath()+"'");
-					FileInputStream fin = new FileInputStream(file);
+					fin = new FileInputStream(file);
 					zout.putNextEntry(new ZipEntry(basePath + file.getName()));
 					int length;
 					while ((length = fin.read(buffer)) > 0) 
@@ -69,6 +80,12 @@ public class ZipUtils
 			throw new QMetryException("Failed to create zip archive");
 		} catch (NullPointerException e) {
 			throw new QMetryException("Failed to create zip archive");
+		} finally {
+			try {
+				if(fin!=null) fin.close();
+			} catch (IOException e2) {
+				e2.printStackTrace();
+			}
 		}
 	}
 }
