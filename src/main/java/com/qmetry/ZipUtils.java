@@ -5,6 +5,7 @@ import java.io.FilenameFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.NullPointerException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import hudson.model.BuildListener;
@@ -35,32 +36,39 @@ public class ZipUtils
 		}
 	}
 
-	private static void zipSubDirectory(String basePath, File dir, ZipOutputStream zout, String pluginName, BuildListener listener) throws IOException 
+	private static void zipSubDirectory(String basePath, File dir, ZipOutputStream zout, String pluginName, BuildListener listener) throws IOException, QMetryException
 	{
-		byte[] buffer = new byte[4096];
-		File[] files = dir.listFiles();
-		for (File file : files) 
+		try
 		{
-			if (file.isDirectory()) 
+			byte[] buffer = new byte[4096];
+			File[] files = dir.listFiles();
+			for (File file : files) 
 			{
-				String path = basePath + file.getName() + "/";
-				zout.putNextEntry(new ZipEntry(path));
-				zipSubDirectory(path, file, zout, pluginName, listener);
-				zout.closeEntry();
-			}
-			else if(file.getName().endsWith(extension))
-			{
-				listener.getLogger().println(pluginName + " : adding result file to zip archive : '"+file.getAbsolutePath()+"'");
-				FileInputStream fin = new FileInputStream(file);
-				zout.putNextEntry(new ZipEntry(basePath + file.getName()));
-				int length;
-				while ((length = fin.read(buffer)) > 0) 
+				if (file.isDirectory()) 
 				{
-					zout.write(buffer, 0, length);
+					String path = basePath + file.getName() + "/";
+					zout.putNextEntry(new ZipEntry(path));
+					zipSubDirectory(path, file, zout, pluginName, listener);
+					zout.closeEntry();
 				}
-				zout.closeEntry();
-				fin.close();
+				else if(file.getName().endsWith(extension))
+				{
+					listener.getLogger().println(pluginName + " : adding result file to zip archive : '"+file.getAbsolutePath()+"'");
+					FileInputStream fin = new FileInputStream(file);
+					zout.putNextEntry(new ZipEntry(basePath + file.getName()));
+					int length;
+					while ((length = fin.read(buffer)) > 0) 
+					{
+						zout.write(buffer, 0, length);
+					}
+					zout.closeEntry();
+					fin.close();
+				}
 			}
+		} catch (IOException e) {
+			throw new QMetryException("Failed to create zip archive");
+		} catch (NullPointerException e) {
+			throw new QMetryException("Failed to create zip archive");
 		}
 	}
 }

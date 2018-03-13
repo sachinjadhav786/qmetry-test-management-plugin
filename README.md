@@ -34,11 +34,14 @@ To upload result files to QMetry, follow the steps.
 
 Fill the QMetry configuration form as per your requirement.
 
-* **Automation API URL** - url to qtm instance
+* **QMetry instance URL** - url to your qtm instance
 * **Automation API Key** - Automation Key
 * **Automation Framework** - JUNIT/TESTNG/CUCUMBER/QAS/HP-UFT
 * **Test Suite** (optional) - Key of test suite.
-* **Build** (optional) - Name of cycle linked to test suite
+* **Project** - Name, ID or Key of QMetry Project
+* **Release** (optional if cycle not present) - Target Release ID or Release name
+* **Cycle** (optional) - Target Cycle Id or Cycle Name
+* **Build** (optional) - Target Build ID or Build name
 * **Result File(s) Path/Directory** - path to result file (or directory for multiple files) relative to build directory
 * **Platform** (optional) - Name of the platform to connect the suite
 
@@ -46,6 +49,5 @@ Build your project from Jenkins and your test results should be automatically li
 
 In Case of failure, check for following points :
 
-* **Build** refers to the *Cycle Name* in QMetry Test Management, and must be included in *Default Release* of your project.
 * **Test Suite** should include *Test Suite Key or Id* from your QMetry Test Management project. Ignore the field if you want to create a new Test Suite for the results.
 * **Platform** (if specified), must be included in your QMetry Test Management project, before the task is executed.
