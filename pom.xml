@@ -23,10 +23,10 @@
 		<tag>HEAD</tag>
 	</scm>
     <licenses>
-    <license>
-      <name>GNU General Public License v3.0</name>
-      <url>https://github.com/jenkinsci/qmetry-test-management-plugin/blob/master/LICENSE</url>
-    </license>
+		<license>
+			<name>GNU General Public License v3.0</name>
+			<url>https://github.com/jenkinsci/qmetry-test-management-plugin/blob/master/LICENSE</url>
+		</license>
   </licenses>
     <dependencies>
         <dependency>
@@ -101,6 +101,7 @@
             <url>https://repo.jenkins-ci.org/public/</url>
         </repository>
     </repositories>
+	
     <pluginRepositories>
         <pluginRepository>
             <id>repo.jenkins-ci.org</id>

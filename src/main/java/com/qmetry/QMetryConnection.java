@@ -59,19 +59,33 @@ public class QMetryConnection {
 			CloseableHttpResponse response = null;
 			
 			MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+			
+			listener.getLogger().println(pluginName + " : uploading result file(s) of type '"+automationFramework+"'");
 			builder.addTextBody("entityType", automationFramework, ContentType.TEXT_PLAIN);
-			if(testSuiteName!=null && !testSuiteName.isEmpty())
+			if(testSuiteName!=null && !testSuiteName.isEmpty()) {
+				listener.getLogger().println(pluginName + " : target test suite '"+testSuiteName+"'");
 				builder.addTextBody("testsuiteId", testSuiteName, ContentType.TEXT_PLAIN);
-			if(buildName!=null && !buildName.isEmpty())
+			}
+			if(buildName!=null && !buildName.isEmpty()) {
+				listener.getLogger().println(pluginName + " : using build (or drop) '"+buildName+"'");
 				builder.addTextBody("dropID", buildName, ContentType.TEXT_PLAIN);
-			if(platformName!=null && !platformName.isEmpty())
+			}
+			if(platformName!=null && !platformName.isEmpty()) {
+				listener.getLogger().println(pluginName + " : target platform '"+platformName+"'");
 				builder.addTextBody("platformID", platformName, ContentType.TEXT_PLAIN);
-			if(cycle!=null && !cycle.isEmpty())
-				builder.addTextBody("cycleID", cycle, ContentType.TEXT_PLAIN);
-			if(project!=null && !project.isEmpty())
+			}
+			if(project!=null && !project.isEmpty()) {
+				listener.getLogger().println(pluginName + " : target project '"+project+"'");
 				builder.addTextBody("projectID", project, ContentType.TEXT_PLAIN);
-			if(release!=null && !release.isEmpty())
+			}
+			if(release!=null && !release.isEmpty()) {
+				listener.getLogger().println(pluginName + " : using release '"+release+"'");
 				builder.addTextBody("releaseID", release, ContentType.TEXT_PLAIN);
+				if(cycle!=null && !cycle.isEmpty()) {
+					listener.getLogger().println(pluginName + " : using cycle '"+cycle+"'");
+					builder.addTextBody("cycleID", cycle, ContentType.TEXT_PLAIN);
+				}
+			}
 
 			File f = new File(filePath);
 			builder.addPart("file", new FileBody(f));
@@ -95,6 +109,7 @@ public class QMetryConnection {
 					{
 						JSONArray data = (JSONArray) jsonresponse.get("data");
 						JSONObject dataObj = (JSONObject) data.get(0);
+						listener.getLogger().println(pluginName + " : Result file(s) successfully uploaded");
 						listener.getLogger().println(pluginName + " : Test Suite ID : "+dataObj.get("testsuiteId").toString());
 						listener.getLogger().println(pluginName + " : Build ID : "+dataObj.get("buildID").toString());
 						listener.getLogger().println(pluginName + " : Platform ID : "+dataObj.get("platformID").toString());

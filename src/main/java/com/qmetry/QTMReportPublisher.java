@@ -25,6 +25,8 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
+import org.apache.commons.lang.StringUtils;
+
 public class QTMReportPublisher extends Recorder {
 
     private final String qtmUrl;
@@ -98,117 +100,58 @@ public class QTMReportPublisher extends Recorder {
 	public boolean perform(final AbstractBuild build, final Launcher launcher, final BuildListener listener)
 	{
 		String pluginName = "QMetry Test Management Plugin";
-        try
-		{
-			String qtmUrl_chkd = getQtmUrl();
-			String qtmAutomationApiKey_chkd = getQtmAutomationApiKey();
-			String automationFramework_chkd = getAutomationFramework();
-			String testResultFilePath_chkd = getTestResultFilePath();
-            String buildName_chkd = getBuildName();
-            String platformName_chkd = getPlatformName();
-            String testSuiteName_chkd = getTestSuiteName();
-			String release_chkd = getRelease();
-			String cycle_chkd = getCycle();
-			String project_chkd = getProject();
+        try {
+			String qtmUrl_chkd = StringUtils.trimToEmpty(getQtmUrl());
+			String qtmAutomationApiKey_chkd = StringUtils.trimToEmpty(getQtmAutomationApiKey());
+			String automationFramework_chkd = StringUtils.trimToEmpty(getAutomationFramework());
+			String testResultFilePath_chkd = StringUtils.trimToEmpty(getTestResultFilePath()).replace("\\","/");
+            String buildName_chkd = StringUtils.trimToEmpty(getBuildName());
+            String platformName_chkd = StringUtils.trimToEmpty(getPlatformName());
+            String testSuiteName_chkd = StringUtils.trimToEmpty(getTestSuiteName());
+			String release_chkd = StringUtils.trimToEmpty(getRelease());
+			String cycle_chkd = StringUtils.trimToEmpty(getCycle());
+			String project_chkd = StringUtils.trimToEmpty(getProject());
             String displayName = pluginName + " : Starting Post Build Action";
-
-            if (testSuiteName_chkd!=null && !testSuiteName_chkd.isEmpty()) 
-			{
-                displayName += " : " + testSuiteName_chkd;
-            }
+			
+            if (StringUtils.isNotEmpty(project_chkd)) {
+                displayName += " : " + project_chkd;
+            } else {
+				throw new QMetryException("Target project name cannot be empty!");
+			}
+			
             String repeated = new String(new char[displayName.length()]).replace("\0", "-");
             listener.getLogger().println("\n" + repeated + "\n" + displayName + "\n" + repeated);
 			
-			if(qtmUrl_chkd == null || qtmUrl_chkd.isEmpty())
-			{
-				throw new QMetryException("Please enter a valid URL to QMetry Test Management in configuration form");
-			}
-			else
-			{
-				qtmUrl_chkd = qtmUrl_chkd.trim();
-			}
-			if(qtmAutomationApiKey_chkd == null || qtmAutomationApiKey_chkd.isEmpty())
-			{
-				throw new QMetryException("Please enter a valid QMetry Test Management automation API Key in configuration form");
-			}
-			else
-			{
-				qtmAutomationApiKey_chkd = qtmAutomationApiKey_chkd.trim();
-			}
-			if(automationFramework_chkd == null || automationFramework_chkd.isEmpty() 
-				|| !(automationFramework_chkd.equals("CUCUMBER") 
+			if(StringUtils.isEmpty(automationFramework_chkd) || 
+						!(automationFramework_chkd.equals("CUCUMBER") 
 						|| automationFramework_chkd.equals("TESTNG")
 						|| automationFramework_chkd.equals("JUNIT")
 						|| automationFramework_chkd.equals("QAS")
 						|| automationFramework_chkd.equals("HPUFT")))
 			{
-				throw new QMetryException("Please enter a valid automation framework in configuration form [CUCUMBER/JUNIT/TESTNG/QAS/HPUFT]");
+				throw new QMetryException("Please enter a valid automation framework [CUCUMBER/JUNIT/TESTNG/QAS/HPUFT]");
 			}
-			else
-			{
-				automationFramework_chkd = automationFramework_chkd.trim();
-			}
-			if(testResultFilePath_chkd == null || testResultFilePath_chkd.isEmpty())
-			{
-				throw new QMetryException("Please enter a valid path to your test result file(s) path/directory in configuration form");
-			}
-			else
-			{
-				testResultFilePath_chkd = testResultFilePath_chkd.trim();
-				testResultFilePath_chkd = testResultFilePath_chkd.replace("\\","/");
-			}
-            if (testSuiteName_chkd != null)
-			{
-				testSuiteName_chkd = testSuiteName_chkd.trim();
-				if(!testSuiteName_chkd.isEmpty()) {
-					listener.getLogger().println(pluginName + " : Using Test Suite '"+testSuiteName_chkd+"'");
-				}
-			}
-            if(project_chkd != null)
-			{
-				project_chkd = project_chkd.trim();
-				if(!project_chkd.isEmpty()) {
-					listener.getLogger().println(pluginName + " : Using Project '"+project_chkd+"'");
-				}
-			}
-            if(release_chkd != null)
-			{
-				release_chkd = release_chkd.trim();
-				if(!release_chkd.isEmpty()) {
-					listener.getLogger().println(pluginName + " : Using Release '"+release_chkd+"'");
-				}
-			}
-            if(cycle_chkd != null)
-			{
-				cycle_chkd = cycle_chkd.trim();
-				if(!cycle_chkd.isEmpty()) {
-					listener.getLogger().println(pluginName + " : Using Cycle '"+cycle_chkd+"'");
-				}
-			}
-            if (buildName_chkd != null)
-			{
-				buildName_chkd = buildName_chkd.trim();
-				if(!buildName.isEmpty()) {
-					listener.getLogger().println(pluginName + " : Using Drop (Build) '"+buildName_chkd+"'");
-				}
-			}
-            if(platformName_chkd != null)
-			{
-				platformName_chkd = platformName_chkd.trim();
-				if(!platformName_chkd.isEmpty()) {
-					listener.getLogger().println(pluginName + " : Using Platform '"+platformName_chkd+"'");
-				}
-			}
-			File wordspaceFile = new File(build.getWorkspace().toString());
-            File filePath = new File(wordspaceFile, testResultFilePath_chkd);
-			if(filePath==null || !filePath.exists()) throw new QMetryException("Failed to read result file(s) at location '"+wordspaceFile.getAbsolutePath()+"/"+testResultFilePath_chkd+"'");
 			
+			if(StringUtils.isEmpty(qtmUrl_chkd)) {
+				throw new QMetryException("URL to qmetry instance cannot be empty");
+			}
+			if(StringUtils.isEmpty(qtmAutomationApiKey_chkd)) {
+				throw new QMetryException("Automation API key cannot be empty");
+			}
+			if(StringUtils.isEmpty(testResultFilePath_chkd)) {
+				throw new QMetryException("Please enter a valid path to your test result file(s) path/directory");
+			}
+            if(StringUtils.isNotEmpty(cycle_chkd) && StringUtils.isEmpty(release_chkd)) {
+				throw new QMetryException("Please provide target release for cycle '"+cycle_chkd+"' in project '"+project_chkd+"'");
+			}
+				
 			QMetryResultUtil resultUtil = new QMetryResultUtil();
-			resultUtil.uploadResultFilesToQMetry(pluginName, 
+			resultUtil.uploadResultFilesToQMetry(build,
+												pluginName, 
 												listener, 
 												qtmUrl_chkd, 
 												qtmAutomationApiKey_chkd, 
-												filePath, 
+												testResultFilePath_chkd, 
 												testSuiteName_chkd, 
 												automationFramework_chkd,
 												buildName_chkd,
@@ -217,18 +160,20 @@ public class QTMReportPublisher extends Recorder {
 												release_chkd,
 												cycle_chkd);
         }
+		catch (QMetryException e) 
+		{
+			e.printStackTrace();
+            listener.getLogger().println(pluginName + " : ERROR : " + e.getMessage());
+            listener.getLogger().println(pluginName + " : Failed to upload test result file(s) to server!");
+			return false;
+        }
 		catch(NullPointerException e) {
 			e.printStackTrace();
             listener.getLogger().println(pluginName + " : Failed to upload test result file(s) to server!");
 			return false;
 		}
-		catch (QMetryException e) 
-		{
-			e.printStackTrace();
-            listener.getLogger().println(pluginName + " : ERROR : " + e.toString());
-			return false;
-        }
-        listener.getLogger().println("\n" + pluginName + " : Successfully finished Post Build Action!");
+		listener.getLogger().println();
+        listener.getLogger().println(pluginName + " : Successfully finished Post Build Action!");
         return true;
     }
 
