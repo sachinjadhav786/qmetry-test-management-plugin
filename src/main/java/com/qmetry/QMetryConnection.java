@@ -116,19 +116,19 @@ public class QMetryConnection {
 					}
 					else
 					{
-						listener.getLogger().println(pluginName + " : Server response : '"+responseString+"'");
+						listener.getLogger().println(pluginName + " : Response : '"+responseString+"'");
 						throw new QMetryException("Error uploading file to server!");
 					}
 				}
 				catch(ParseException e)
 				{
-					listener.getLogger().println(pluginName + " : Server response : '"+responseString+"'");
+					listener.getLogger().println(pluginName + " : ERROR :: QMetryConnection in uploadFileToTestSuite : '"+responseString+"'");
 					throw new QMetryException("Error uploading file to server!");
 				}
 			}
 			else
 			{
-				listener.getLogger().println(pluginName + " : Server Response : '"+responseString+"'");
+				listener.getLogger().println(pluginName + " : Response : '"+responseString+"'");
 				throw new QMetryException("Error uploading file to server!");
 			}
 			httpClient.close();
@@ -136,6 +136,7 @@ public class QMetryConnection {
 		}
 		catch(IOException e)
 		{
+			listener.getLogger().println(pluginName+" : ERROR :: QMetryConnection in uploadFileToTestSuite : "+e.toString());
 			throw new QMetryException("Failed to upload result files to QMetry!");
 		}
 	}

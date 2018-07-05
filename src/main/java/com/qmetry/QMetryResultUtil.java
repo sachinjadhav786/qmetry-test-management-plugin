@@ -15,6 +15,7 @@ import hudson.model.Computer;
 import hudson.model.Hudson.MasterComputer;
 import hudson.slaves.SlaveComputer;
 
+
 public class QMetryResultUtil
 {	
 	public File prepareResultFile(String filePath, AbstractBuild build, String pluginName, BuildListener listener) throws QMetryException {
@@ -77,12 +78,15 @@ public class QMetryResultUtil
 			throw new QMetryException(e.getMessage());
 		} 
 		catch (NullPointerException e) {
+			listener.getLogger().println(pluginName+" : ERROR : "+e.toString());
 			throw new QMetryException("failed to read result file(s) at location '"+filePath+"'");
 		}
 		catch(IOException e) {
+			listener.getLogger().println(pluginName+" : ERROR : "+e.toString());
 			throw new QMetryException("failed to read result file(s) at location '"+filePath+"'");
 		}
 		catch(InterruptedException e) {
+			listener.getLogger().println(pluginName+" : ERROR : "+e.toString());
 			throw new QMetryException("failed to read result file(s) at location '"+filePath+"'");
 		}
 	}
@@ -104,52 +108,66 @@ public class QMetryResultUtil
 		try 
 		{
 			File resultFile = prepareResultFile(resultFilePath, build, pluginName, listener);
-			String extension = null;
-			if(automationFramework.equals("CUCUMBER") || automationFramework.equals("QAS"))
-			{
-				extension = ".json";
-			}
-			else
-			{
-				extension = ".xml";
-			}
-			
+						
 			QMetryConnection conn = new QMetryConnection(url, key);
 			
 			if(automationFramework.equals("QAS"))
 			{
-				File dirs[] = resultFile.listFiles(new FilenameFilter() {
-					public boolean accept(File directory, String fileName) {
-						return (directory.isDirectory() && fileName.length()==20);
-					}
-				});
+				listener.getLogger().println(pluginName + " : Reading result files from path '"+resultFile.getAbsolutePath()+"'");
+				// File dirs[] = resultFile.listFiles(new FilenameFilter() {
+				// 	public boolean accept(File directory, String fileName) {
+				// 		return (directory.isDirectory() && fileName.length()==20);
+				// 	}
+				// });
 				
-				if(dirs==null) {
-					throw new QMetryException("Could not find result file(s) at given path!");
+				// if(dirs==null) {
+				// 	throw new QMetryException("Could not find result file(s) at given path!");
+				// }
+				
+				// Long last_mod = Long.valueOf(0);
+				// File latest_dir = null;
+				
+				// for(File adir : dirs)
+				// {				
+				// 	if (adir.isDirectory() && adir.lastModified() > last_mod) 
+				// 	{
+				// 		latest_dir = adir;
+				// 		last_mod = adir.lastModified();
+				// 	}
+				// }
+				// ZipUtils zipUtils = new ZipUtils(extension);
+				String filepath = null;
+				if (resultFile.isDirectory()){
+					filepath = CreateZip.createZip(resultFile.getAbsolutePath(),automationFramework);
+					listener.getLogger().println(pluginName + " : Zip file path '"+filepath+"'");
+				}else if(resultFile.isFile()){
+					String fileExtensionJson=getExtensionOfFile(resultFile);
+					String extension = "zip";
+					if(extension.equalsIgnoreCase(fileExtensionJson)){
+						filepath = resultFile.getAbsolutePath();
+					}else 
+						listener.getLogger().println(pluginName + " : Upload .Zip file or configure directory to upload " + automationFramework +" results");
 				}
-				
-				Long last_mod = Long.valueOf(0);
-				File latest_dir = null;
-				
-				for(File adir : dirs)
-				{				
-					if (adir.isDirectory() && adir.lastModified() > last_mod) 
-					{
-						latest_dir = adir;
-						last_mod = adir.lastModified();
-					}
-				}
-				ZipUtils zipUtils = new ZipUtils(extension);
-				if(latest_dir == null)
-					throw new QMetryException("Results' directory of type QAS not found in given directory '"+resultFile.getAbsolutePath()+"'");
-				zipUtils.zipDirectory(latest_dir, "qmetry_result.zip", pluginName, listener);
-				File zipArchive = new File(latest_dir, "qmetry_result.zip");
-				if(zipArchive==null || !zipArchive.exists())
-					throw new QMetryException("Failed to create zip archive for QAS results at directory '"+latest_dir.getAbsolutePath()+"'");
-				conn.uploadFileToTestSuite(zipArchive.getAbsolutePath(), testSuiteName, automationFramework, buildName, platformName, project, release, cycle, pluginName, listener);
+					
+				if(filepath == null)
+					throw new QMetryException("Results' directory of type "+automationFramework+" not found in given directory '"+resultFile.getAbsolutePath()+"'");
+				// zipUtils.zipDirectory(latest_dir, "qmetry_result.zip", pluginName, listener);
+				// File zipArchive = new File(latest_dir, "qmetry_result.zip");
+				// if(zipArchive==null || !zipArchive.exists())
+				// 	throw new QMetryException("Failed to create zip archive for QAS results at directory '"+latest_dir.getAbsolutePath()+"'");
+				conn.uploadFileToTestSuite(filepath, testSuiteName, automationFramework, buildName, platformName, project, release, cycle, pluginName, listener);
 			}
 			else if (resultFile.isDirectory()) 
 			{
+				String extension = null;
+				if(automationFramework.equals("CUCUMBER") || automationFramework.equals("QAS"))
+				{
+					extension = ".json";
+				}
+				else
+				{
+					extension = ".xml";
+				}
 				listener.getLogger().println(pluginName + " : Reading result files from Directory '"+resultFile.getAbsolutePath()+"'");
 				File[] listOfFiles = resultFile.listFiles();
 				if(listOfFiles == null)
@@ -182,10 +200,30 @@ public class QMetryResultUtil
 			{
 				throw new QMetryException("Failed to read result file(s) at location '"+resultFile.getAbsolutePath()+"'");
 			}
-		} catch (NullPointerException e) {
+		}catch (IOException e) {
+			listener.getLogger().println(pluginName+" : ERROR : "+e.toString());
+			throw new QMetryException("Failed to upload result file(s) to server");
+		}  catch (NullPointerException e) {
+			listener.getLogger().println(pluginName+" : ERROR : "+e.toString());
 			throw new QMetryException("Failed to upload result file(s) to server");
 		} catch (QMetryException e) {
+			listener.getLogger().println(pluginName+" : ERROR : "+e.toString());
 			throw new QMetryException(e.getMessage());
 		}
+	}
+
+	private static String getExtensionOfFile(File file)
+	{
+		String fileExtension="";
+		// Get file Name first
+		String fileName=file.getName();
+		
+		// If fileName do not contain "." or starts with "." then it is not a valid file
+		if(fileName.contains(".") && fileName.lastIndexOf(".")!= 0)
+		{
+			fileExtension=fileName.substring(fileName.lastIndexOf(".")+1);
+		}
+		
+		return fileExtension;
 	}
 }

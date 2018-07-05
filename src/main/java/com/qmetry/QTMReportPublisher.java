@@ -101,18 +101,54 @@ public class QTMReportPublisher extends Recorder {
 	{
 		String pluginName = "QMetry Test Management Plugin";
         try {
+              EnvVars env = null;
+            try {
+                env = build.getEnvironment(listener);
+            } catch (Exception e) {
+                listener.getLogger().println("Error retrieving environment variables: " + e.getMessage());
+                // env = new EnvVars();
+            }
+        
+
 			String qtmUrl_chkd = StringUtils.trimToEmpty(getQtmUrl());
+            qtmUrl_chkd = env.expand(qtmUrl_chkd);
+        
+
 			String qtmAutomationApiKey_chkd = StringUtils.trimToEmpty(getQtmAutomationApiKey());
+            qtmAutomationApiKey_chkd = env.expand(qtmAutomationApiKey_chkd);
+            
+
 			String automationFramework_chkd = StringUtils.trimToEmpty(getAutomationFramework());
+            automationFramework_chkd = env.expand(automationFramework_chkd);
+        
+
 			String testResultFilePath_chkd = StringUtils.trimToEmpty(getTestResultFilePath()).replace("\\","/");
+            testResultFilePath_chkd = env.expand(testResultFilePath_chkd);
+            
+
             String buildName_chkd = StringUtils.trimToEmpty(getBuildName());
+            buildName_chkd= env.expand(buildName_chkd);
+            
+
             String platformName_chkd = StringUtils.trimToEmpty(getPlatformName());
+            platformName_chkd= env.expand(platformName_chkd);
+            
+
             String testSuiteName_chkd = StringUtils.trimToEmpty(getTestSuiteName());
+            testSuiteName_chkd= env.expand(testSuiteName_chkd);
+            
+
 			String release_chkd = StringUtils.trimToEmpty(getRelease());
+            release_chkd= env.expand(release_chkd);
+    
 			String cycle_chkd = StringUtils.trimToEmpty(getCycle());
+            cycle_chkd= env.expand(cycle_chkd);
+
 			String project_chkd = StringUtils.trimToEmpty(getProject());
+            project_chkd= env.expand(project_chkd);
+
             String displayName = pluginName + " : Starting Post Build Action";
-			
+                    
             if (StringUtils.isNotEmpty(project_chkd)) {
                 displayName += " : " + project_chkd;
             } else {
@@ -164,7 +200,7 @@ public class QTMReportPublisher extends Recorder {
 		{
 			e.printStackTrace();
             listener.getLogger().println(pluginName + " : ERROR : " + e.getMessage());
-            listener.getLogger().println(pluginName + " : Failed to upload test result file(s) to server!");
+            // listener.getLogger().println(pluginName + " : Failed to upload test result file(s) to server!");
 			return false;
         }
 		catch(NullPointerException e) {
@@ -172,6 +208,7 @@ public class QTMReportPublisher extends Recorder {
             listener.getLogger().println(pluginName + " : Failed to upload test result file(s) to server!");
 			return false;
 		}
+
 		listener.getLogger().println();
         listener.getLogger().println(pluginName + " : Successfully finished Post Build Action!");
         return true;
@@ -200,8 +237,7 @@ public class QTMReportPublisher extends Recorder {
         }
 
         public FormValidation doCheckQtmUrl(@QueryParameter String qtmUrl) throws IOException, ServletException {
-            if (qtmUrl.length() == 0 || qtmUrl.length() < 4
-                    || (!qtmUrl.startsWith("https://") && !qtmUrl.startsWith("http://"))) {
+            if (qtmUrl.length() <1) {
                 return FormValidation.error("Please enter valid QTM API URL!");
             }
             return FormValidation.ok();
@@ -209,7 +245,7 @@ public class QTMReportPublisher extends Recorder {
 
         public FormValidation doCheckQtmAutomationApiKey(@QueryParameter String qtmAutomationApiKey)
                 throws IOException, ServletException {
-            if (!(qtmAutomationApiKey.length()>10)) {
+            if (qtmAutomationApiKey.length() < 1 ) {
                 return FormValidation.error("Please enter valid QTM Automation API Key!");
             }
             return FormValidation.ok();
@@ -217,9 +253,10 @@ public class QTMReportPublisher extends Recorder {
 
         public FormValidation doCheckTestResultFilePath(@QueryParameter String testResultFilePath)
                 throws IOException, ServletException {
-            if (testResultFilePath == null) {
+            if (testResultFilePath == null || testResultFilePath.length() < 1) {
                 return FormValidation.error("Please provide a file path(or directory for multiple files)");
             }
+
             return FormValidation.ok();
         }
 
@@ -233,7 +270,7 @@ public class QTMReportPublisher extends Recorder {
 
         public FormValidation doCheckProject(@QueryParameter String project)
                 throws IOException, ServletException {
-			if (project == null || project.length()<2) {
+			if (project == null || project.length()< 1) {
 				return FormValidation.error("Please provide project ID, Key or Name!");
 			}
             return FormValidation.ok();
@@ -242,9 +279,9 @@ public class QTMReportPublisher extends Recorder {
         public FormValidation doCheckCycle(@QueryParameter String project, @QueryParameter String release, @QueryParameter String cycle)
                 throws IOException, ServletException {
 			if(cycle !=null && cycle.length()>0) {
-				if (project == null || project.length()<2) {
+				if (project == null || project.length()<1) {
 					return FormValidation.error("Please provide project ID, Key or Name!");
-				} else if(release==null || release.length()<2) {
+				} else if(release==null || release.length()<1) {
 					return FormValidation.error("Please provide release ID or Name!");
 				}
 			}
@@ -253,7 +290,7 @@ public class QTMReportPublisher extends Recorder {
 
         public FormValidation doCheckRelease(@QueryParameter String project, @QueryParameter String release)
                 throws IOException, ServletException {
-            if (release!=null && release.length() > 0 && (project == null || project.length()<2)) {
+            if (release!=null && release.length() > 0 && (project == null || project.length()<1)) {
                 return FormValidation.error("Please provide project ID, Key or Name!");
             }
             return FormValidation.ok();
