@@ -25,7 +25,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import hudson.model.BuildListener;
+//import hudson.model.BuildListener;
+import hudson.model.TaskListener;
 
 public class QMetryConnection {
 
@@ -51,7 +52,7 @@ public class QMetryConnection {
     }
 
     public void uploadFileToTestSuite(String filePath, String testSuiteName, String automationFramework,
-            String buildName, String platformName, String project, String release, String cycle, String pluginName, BuildListener listener)
+            String buildName, String platformName, String project, String release, String cycle, String pluginName, /*BuildListener*/TaskListener listener)
             throws QMetryException {
 		try
 		{

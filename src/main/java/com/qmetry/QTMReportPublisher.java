@@ -4,8 +4,8 @@ import hudson.Extension;
 import hudson.Launcher;
 import hudson.EnvVars;
 import hudson.FilePath;
-import hudson.model.BuildListener;
-import hudson.model.AbstractBuild;
+//import hudson.model.BuildListener;
+//import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -27,7 +27,13 @@ import org.kohsuke.stapler.QueryParameter;
 
 import org.apache.commons.lang.StringUtils;
 
-public class QTMReportPublisher extends Recorder {
+import jenkins.tasks.SimpleBuildStep;
+import hudson.model.TaskListener;
+import hudson.model.Run;
+import hudson.FilePath;
+import hudson.AbortException;
+
+public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
 
     private final String qtmUrl;
     private final String qtmAutomationApiKey;
@@ -97,13 +103,14 @@ public class QTMReportPublisher extends Recorder {
 	}
 
     @Override
-	public boolean perform(final AbstractBuild build, final Launcher launcher, final BuildListener listener)
+	//public boolean perform(final AbstractBuild build, final Launcher launcher, final BuildListener listener)
+	public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws AbortException
 	{
 		String pluginName = "QMetry Test Management Plugin";
         try {
               EnvVars env = null;
             try {
-                env = build.getEnvironment(listener);
+                env = run.getEnvironment(listener);
             } catch (Exception e) {
                 listener.getLogger().println("Error retrieving environment variables: " + e.getMessage());
                 // env = new EnvVars();
@@ -182,9 +189,10 @@ public class QTMReportPublisher extends Recorder {
 			}
 				
 			QMetryResultUtil resultUtil = new QMetryResultUtil();
-			resultUtil.uploadResultFilesToQMetry(build,
+			resultUtil.uploadResultFilesToQMetry(/*build*/run,
 												pluginName, 
 												listener, 
+												workspace,
 												qtmUrl_chkd, 
 												qtmAutomationApiKey_chkd, 
 												testResultFilePath_chkd, 
@@ -200,18 +208,19 @@ public class QTMReportPublisher extends Recorder {
 		{
 			e.printStackTrace();
             listener.getLogger().println(pluginName + " : ERROR : " + e.getMessage());
-            // listener.getLogger().println(pluginName + " : Failed to upload test result file(s) to server!");
-			return false;
+            listener.getLogger().println(pluginName + " : Failed to upload test result file(s) to server!");
+			//return false;
+			throw new AbortException();
         }
 		catch(NullPointerException e) {
 			e.printStackTrace();
             listener.getLogger().println(pluginName + " : Failed to upload test result file(s) to server!");
-			return false;
+			//return false;
+			throw new AbortException();
 		}
 
-		listener.getLogger().println();
-        listener.getLogger().println(pluginName + " : Successfully finished Post Build Action!");
-        return true;
+		listener.getLogger().println(pluginName + " : Successfully finished Post Build Action!");
+        //return true;
     }
 
     @Override

@@ -1,3 +1,4 @@
+
 /*******************************************************************************
 * Copyright 2018 Infostretch Corporation
 *
@@ -21,7 +22,6 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream; 
@@ -45,7 +45,7 @@ public class CreateZip
 	public static String createZip(String sourceDir, String formats) throws IOException,FileNotFoundException {
 		//System.out.println("\n\nCreating zip file.........");
 		String resultDir="";
-		if(formats.equals("QAS"))
+		/*if(formats.equals("QAS"))
 		{
 			File testDir=lastFileModified(sourceDir);
 			//System.out.println("Test directory");
@@ -53,9 +53,9 @@ public class CreateZip
 			resultDir=testDir.getPath();
 		}
 		else
-		{
+		{*/
 			resultDir=sourceDir;
-		}
+		//}
 		
 		String zipDir=resultDir+"/"+"testresult.zip";
 		//System.out.println("\nZipFile path:"+zipDir);
@@ -64,7 +64,7 @@ public class CreateZip
 		return zipDir;
 	}
 
-	public static File lastFileModified(String dir) {
+	/*public static File lastFileModified(String dir) {
 		// System.out.println("\nZipFile path:"+dir);
 		File fl = new File(dir);
 		File[] files = fl.listFiles();
@@ -84,7 +84,7 @@ public class CreateZip
 			}
 		}
 		return choice;
-	}
+	}*/
 	
 	 
 

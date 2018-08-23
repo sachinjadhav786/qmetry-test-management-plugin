@@ -15,28 +15,69 @@ import hudson.model.Computer;
 import hudson.model.Hudson.MasterComputer;
 import hudson.slaves.SlaveComputer;
 
+import hudson.model.TaskListener;
+import hudson.model.Run;
+import hudson.FilePath;
+import hudson.model.AbstractProject;
+import hudson.model.TopLevelItem;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import java.util.List;	
 
 public class QMetryResultUtil
 {	
-	public File prepareResultFile(String filePath, AbstractBuild build, String pluginName, BuildListener listener) throws QMetryException {
+	public File prepareResultFile(String filePath, /*AbstractBuild build*/Run<?, ?> run, String pluginName, /*BuildListener*/TaskListener listener, FilePath workspace, String automationFramework) throws QMetryException {
 		try {
-			if(Computer.currentComputer() instanceof SlaveComputer) {
+			if(filePath.startsWith("/")) {
+					filePath = filePath.substring(1, filePath.length());
+			}
+			if(workspace.toComputer().getNode().toComputer() instanceof SlaveComputer) {
 				listener.getLogger().println(pluginName + " : build taking place on slave machine");
-				FilePath slaveMachineWorkspace = build.getProject().getWorkspace();
+				FilePath slaveMachineWorkspace = workspace;
 				if(!slaveMachineWorkspace.exists()) {
 					throw new QMetryException("Failed to access slave machine workspace directory");
 				}
 				listener.getLogger().println(pluginName + " : slave machine workspace at '"+slaveMachineWorkspace.toURI().toString()+"'");
-				if(!(build.getProject() instanceof FreeStyleProject)) {
-					throw new QMetryException("Not a Freestyle project. Failed to fetch workspace directory on master machine");
+				
+				//for last modified folder in QAS
+				FilePath f = null;
+				if(automationFramework.equals("QAS"))
+				{
+					listener.getLogger().println(pluginName + " : Getting latest test-result folder for QAS...");
+					f = lastFileModified(slaveMachineWorkspace,filePath);
+					filePath = filePath + "/" + f.getName();
+					listener.getLogger().println(pluginName + " : Latest test-result folder : " + f.toString());
 				}
-				FilePath masterMachineWorkspace  = null;
-				if(build.getProject().getCustomWorkspace() != null && build.getProject().getCustomWorkspace().length()>0 ) {
-					masterMachineWorkspace = new FilePath(new File(build.getProject().getCustomWorkspace()));
-				} 
-				else {
-					masterMachineWorkspace = Jenkins.getInstance().getWorkspaceFor((FreeStyleProject)build.getProject());
+				else
+				{
+					f = new FilePath(slaveMachineWorkspace, filePath);
+					if(!f.exists())
+					{
+						throw new QMetryException("Can not find given file");
+					}
 				}
+				
+				FilePath masterMachineWorkspace = null;
+				//for free style job
+				if(run.getParent() instanceof AbstractProject)
+				{
+					AbstractProject project = (AbstractProject)run.getParent();
+					if(project.getCustomWorkspace() != null && project.getCustomWorkspace().length()>0 ) 
+					{
+						masterMachineWorkspace = new FilePath(new File(project.getCustomWorkspace()));
+					} 
+					else 
+					{
+						masterMachineWorkspace = Jenkins.getInstance().getWorkspaceFor((TopLevelItem)project);
+					}
+				}
+				//for pipeline job
+				else if(run.getParent() instanceof WorkflowJob)
+				{
+					//listener.getLogger().println("[DEBUG] : instance of WorkFlowJob");
+					WorkflowJob project = (WorkflowJob)run.getParent();
+					masterMachineWorkspace = Jenkins.getInstance().getWorkspaceFor((TopLevelItem)project);
+				}
+			
 				if(masterMachineWorkspace==null) {
 					throw new QMetryException("Failed to access master machine workspace directory");
 				} else if(!masterMachineWorkspace.exists()) {
@@ -44,9 +85,7 @@ public class QMetryResultUtil
 					masterMachineWorkspace.mkdirs();
 				}
 				listener.getLogger().println(pluginName + " : master machine workspace at '"+masterMachineWorkspace.toURI().toString()+"'");
-				if(filePath.startsWith("/")) {
-					filePath = filePath.substring(1, filePath.length());
-				}
+				
 				if(!filePath.endsWith("/") && !filePath.endsWith("json") && !filePath.endsWith("xml")) {
 					filePath = filePath + "/";
 				}
@@ -63,10 +102,34 @@ public class QMetryResultUtil
 				}
 				return finalResultFile;
 			}
-			else if(Computer.currentComputer() instanceof MasterComputer) {
+			else if(workspace.toComputer().getNode().toComputer() instanceof MasterComputer)
+			{
 				listener.getLogger().println(pluginName + " : build taking place on master machine");
-				File masterWorkspace = new File(build.getProject().getWorkspace().toURI());
-				File resultFile = new File(masterWorkspace, filePath);
+				//File masterWorkspace = new File(build.getProject().getWorkspace().toURI());
+				File masterWorkspace = new File(workspace.toString());
+				
+				//File resultFile = new File(masterWorkspace, filePath);
+				
+				FilePath resultFilePath = null;
+				if(automationFramework.equals("QAS"))
+				{
+					//Getting latest testresult files for QAS
+					listener.getLogger().println("QMetry for JIRA : Getting latest test-result folder for QAS...");
+					resultFilePath = lastFileModified(new FilePath(masterWorkspace),filePath);
+					listener.getLogger().println("QMetry for JIRA : Latest test-result folder : " + resultFilePath.toString());
+					//listener.getLogger().println("[DEBUG]: final path : "+resultFilePath.toString());
+				}
+				else
+				{
+					resultFilePath = new FilePath(new File(masterWorkspace, filePath));
+					if(!resultFilePath.exists())
+					{
+						throw new QMetryException("Can not find given file");
+					}
+					//listener.getLogger().println("[DEBUG]: final path : "+resultFilePath.toString());
+				}
+				
+				File resultFile = new File(resultFilePath.toString());
 				if(!resultFile.exists()) {
 					throw new QMetryException("Result file(s) not found : '"+filePath+"'");
 				}
@@ -74,9 +137,9 @@ public class QMetryResultUtil
 			}
 			else throw new QMetryException("Machine instance neither a master nor a slave");
 		}
-		catch(QMetryException e) {
+		/*catch(QMetryException e) {
 			throw new QMetryException(e.getMessage());
-		} 
+		} */
 		catch (NullPointerException e) {
 			listener.getLogger().println(pluginName+" : ERROR : "+e.toString());
 			throw new QMetryException("failed to read result file(s) at location '"+filePath+"'");
@@ -91,9 +154,10 @@ public class QMetryResultUtil
 		}
 	}
 
-	public void uploadResultFilesToQMetry(AbstractBuild build,
+	public void uploadResultFilesToQMetry(/*AbstractBuild build*/Run<?, ?> run,
 											String pluginName,
-											BuildListener listener,
+											/*BuildListener*/TaskListener listener,
+											FilePath workspace,
 											String url,
 											String key,
 											String resultFilePath,
@@ -107,35 +171,13 @@ public class QMetryResultUtil
 	{
 		try 
 		{
-			File resultFile = prepareResultFile(resultFilePath, build, pluginName, listener);
+			File resultFile = prepareResultFile(resultFilePath, /*build*/run, pluginName, listener,workspace, automationFramework);
 						
 			QMetryConnection conn = new QMetryConnection(url, key);
 			
 			if(automationFramework.equals("QAS"))
 			{
 				listener.getLogger().println(pluginName + " : Reading result files from path '"+resultFile.getAbsolutePath()+"'");
-				// File dirs[] = resultFile.listFiles(new FilenameFilter() {
-				// 	public boolean accept(File directory, String fileName) {
-				// 		return (directory.isDirectory() && fileName.length()==20);
-				// 	}
-				// });
-				
-				// if(dirs==null) {
-				// 	throw new QMetryException("Could not find result file(s) at given path!");
-				// }
-				
-				// Long last_mod = Long.valueOf(0);
-				// File latest_dir = null;
-				
-				// for(File adir : dirs)
-				// {				
-				// 	if (adir.isDirectory() && adir.lastModified() > last_mod) 
-				// 	{
-				// 		latest_dir = adir;
-				// 		last_mod = adir.lastModified();
-				// 	}
-				// }
-				// ZipUtils zipUtils = new ZipUtils(extension);
 				String filepath = null;
 				if (resultFile.isDirectory()){
 					filepath = CreateZip.createZip(resultFile.getAbsolutePath(),automationFramework);
@@ -206,10 +248,10 @@ public class QMetryResultUtil
 		}  catch (NullPointerException e) {
 			listener.getLogger().println(pluginName+" : ERROR : "+e.toString());
 			throw new QMetryException("Failed to upload result file(s) to server");
-		} catch (QMetryException e) {
+		} /*catch (QMetryException e) {
 			listener.getLogger().println(pluginName+" : ERROR : "+e.toString());
 			throw new QMetryException(e.getMessage());
-		}
+		}*/
 	}
 
 	private static String getExtensionOfFile(File file)
@@ -225,5 +267,32 @@ public class QMetryResultUtil
 		}
 		
 		return fileExtension;
+	}
+	
+	public static FilePath lastFileModified(FilePath base, String path) throws IOException,InterruptedException,QMetryException
+	{
+		FilePath slaveDir = new FilePath(base,path); 
+		if(!slaveDir.exists())
+		{
+			throw new QMetryException("Can not find given file");
+		}
+		List<FilePath> files = slaveDir.listDirectories();
+		long lastMod = Long.MIN_VALUE;
+		FilePath choice = null;
+		if(files!=null)
+		{
+			for (FilePath file : files) 
+			{
+				if(file.isDirectory() && !(file.getName()).equals("surefire"))
+				{
+					if (file.lastModified() > lastMod) 
+					{
+						choice = file;
+						lastMod = file.lastModified();
+					}
+				}
+			}
+		}
+		return choice;
 	}
 }
