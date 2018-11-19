@@ -41,6 +41,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
     private final String testResultFilePath;
     private final String buildName;
     private final String testSuiteName;
+	private final String testSName;
     private final String platformName;
 	private final String project;
 	private final String release;
@@ -48,7 +49,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
 
     @DataBoundConstructor
     public QTMReportPublisher(final String qtmUrl, final String qtmAutomationApiKey, final String automationFramework,
-            final String testResultFilePath, final String buildName, final String testSuiteName, final String platformName,
+            final String testResultFilePath, final String buildName, final String testSuiteName, final String testSName, final String platformName,
 			final String project, final String release, final String cycle) {
         this.qtmUrl = qtmUrl;
         this.qtmAutomationApiKey = qtmAutomationApiKey;
@@ -56,6 +57,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
         this.testResultFilePath = testResultFilePath;
         this.buildName = buildName;
         this.testSuiteName = testSuiteName;
+		this.testSName = testSName;
         this.platformName = platformName;
 		this.project = project;
 		this.cycle = cycle;
@@ -86,6 +88,10 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
         return this.testSuiteName;
     }
 
+	public String getTestSName() {
+		return this.testSName;
+	}
+	
     public String getPlatformName() {
         return this.platformName;
     }
@@ -107,53 +113,72 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
 	public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws AbortException
 	{
 		String pluginName = "QMetry Test Management Plugin";
+		int buildnumber = run.number;
         try {
               EnvVars env = null;
             try {
                 env = run.getEnvironment(listener);
-            } catch (Exception e) {
+            } 	 catch(Exception e) {
                 listener.getLogger().println("Error retrieving environment variables: " + e.getMessage());
                 // env = new EnvVars();
             }
         
-
+			listener.getLogger().println("-------------------------------------------------------------------------------");
+			listener.getLogger().println("                           QMetry Test Management                              ");
+			listener.getLogger().println("-------------------------------------------------------------------------------");
 			String qtmUrl_chkd = StringUtils.trimToEmpty(getQtmUrl());
-            qtmUrl_chkd = env.expand(qtmUrl_chkd);
+            //qtmUrl_chkd = env.expand(qtmUrl_chkd);
         
 
 			String qtmAutomationApiKey_chkd = StringUtils.trimToEmpty(getQtmAutomationApiKey());
-            qtmAutomationApiKey_chkd = env.expand(qtmAutomationApiKey_chkd);
+            //qtmAutomationApiKey_chkd = env.expand(qtmAutomationApiKey_chkd);
             
 
 			String automationFramework_chkd = StringUtils.trimToEmpty(getAutomationFramework());
-            automationFramework_chkd = env.expand(automationFramework_chkd);
+            //automationFramework_chkd = env.expand(automationFramework_chkd);
         
 
 			String testResultFilePath_chkd = StringUtils.trimToEmpty(getTestResultFilePath()).replace("\\","/");
-            testResultFilePath_chkd = env.expand(testResultFilePath_chkd);
+            //testResultFilePath_chkd = env.expand(testResultFilePath_chkd);
             
 
             String buildName_chkd = StringUtils.trimToEmpty(getBuildName());
-            buildName_chkd= env.expand(buildName_chkd);
+            //buildName_chkd= env.expand(buildName_chkd);
             
 
             String platformName_chkd = StringUtils.trimToEmpty(getPlatformName());
-            platformName_chkd= env.expand(platformName_chkd);
+            //platformName_chkd= env.expand(platformName_chkd);
             
 
             String testSuiteName_chkd = StringUtils.trimToEmpty(getTestSuiteName());
-            testSuiteName_chkd= env.expand(testSuiteName_chkd);
+            //testSuiteName_chkd= env.expand(testSuiteName_chkd);
             
-
+			String testSName_chkd = StringUtils.trimToEmpty(getTestSName());
+			
 			String release_chkd = StringUtils.trimToEmpty(getRelease());
-            release_chkd= env.expand(release_chkd);
+            //release_chkd= env.expand(release_chkd);
     
 			String cycle_chkd = StringUtils.trimToEmpty(getCycle());
-            cycle_chkd= env.expand(cycle_chkd);
+            //cycle_chkd= env.expand(cycle_chkd);
 
 			String project_chkd = StringUtils.trimToEmpty(getProject());
-            project_chkd= env.expand(project_chkd);
-
+            //project_chkd= env.expand(project_chkd);
+			
+			if(env != null)
+			{
+				qtmUrl_chkd = env.expand(qtmUrl_chkd);
+				qtmAutomationApiKey_chkd = env.expand(qtmAutomationApiKey_chkd);
+				automationFramework_chkd = env.expand(automationFramework_chkd);
+				testResultFilePath_chkd = env.expand(testResultFilePath_chkd);
+				buildName_chkd= env.expand(buildName_chkd);
+				platformName_chkd= env.expand(platformName_chkd);
+				testSuiteName_chkd= env.expand(testSuiteName_chkd);
+				testSName_chkd= env.expand(testSName_chkd);
+				release_chkd= env.expand(release_chkd);
+				cycle_chkd= env.expand(cycle_chkd);
+				project_chkd= env.expand(project_chkd);
+			}
+			
             String displayName = pluginName + " : Starting Post Build Action";
                     
             if (StringUtils.isNotEmpty(project_chkd)) {
@@ -162,9 +187,9 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
 				throw new QMetryException("Target project name cannot be empty!");
 			}
 			
-            String repeated = new String(new char[displayName.length()]).replace("\0", "-");
-            listener.getLogger().println("\n" + repeated + "\n" + displayName + "\n" + repeated);
-			
+            //String repeated = new String(new char[displayName.length()]).replace("\0", "-");
+            //listener.getLogger().println("\n" + repeated + "\n" + displayName + "\n" + repeated);
+            listener.getLogger().println(displayName);
 			if(StringUtils.isEmpty(automationFramework_chkd) || 
 						!(automationFramework_chkd.equals("CUCUMBER") 
 						|| automationFramework_chkd.equals("TESTNG")
@@ -187,6 +212,9 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
             if(StringUtils.isNotEmpty(cycle_chkd) && StringUtils.isEmpty(release_chkd)) {
 				throw new QMetryException("Please provide target release for cycle '"+cycle_chkd+"' in project '"+project_chkd+"'");
 			}
+			if(StringUtils.isNotEmpty(buildName_chkd) && (StringUtils.isEmpty(release_chkd) || StringUtils.isEmpty(cycle_chkd))) {
+				throw new QMetryException("Please provide target release and cycle for build '"+buildName_chkd+"' in project '"+project_chkd+"'");
+			}
 				
 			QMetryResultUtil resultUtil = new QMetryResultUtil();
 			resultUtil.uploadResultFilesToQMetry(/*build*/run,
@@ -196,30 +224,44 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
 												qtmUrl_chkd, 
 												qtmAutomationApiKey_chkd, 
 												testResultFilePath_chkd, 
-												testSuiteName_chkd, 
+												testSuiteName_chkd,
+												testSName_chkd,
 												automationFramework_chkd,
 												buildName_chkd,
 												platformName_chkd,
 												project_chkd,
 												release_chkd,
-												cycle_chkd);
+												cycle_chkd,
+												buildnumber);
         }
 		catch (QMetryException e) 
 		{
 			e.printStackTrace();
             listener.getLogger().println(pluginName + " : ERROR : " + e.getMessage());
-            listener.getLogger().println(pluginName + " : Failed to upload test result file(s) to server!");
+            listener.getLogger().println(pluginName + " : Failed to upload test result file(s) to server. Please send these logs to qtmprofessional@qmetrysupport.atlassian.net for more information");
+			listener.getLogger().println("-------------------------------------------------------------------------------");
 			//return false;
 			throw new AbortException();
         }
-		catch(NullPointerException e) {
+		catch(IOException e)
+		{
 			e.printStackTrace();
-            listener.getLogger().println(pluginName + " : Failed to upload test result file(s) to server!");
+			listener.getLogger().println(pluginName + " : ERROR : " + e.getMessage());
+			listener.getLogger().println(pluginName + " : Failed to upload test result file(s) to server. Please send these logs to qtmprofessional@qmetrysupport.atlassian.net for more information");
+			listener.getLogger().println("-------------------------------------------------------------------------------");
+			throw new AbortException();
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			listener.getLogger().println(pluginName + " : ERROR : " + e.getMessage());
+            listener.getLogger().println(pluginName + " : Failed to upload test result file(s) to server. Please send these logs to qtmprofessional@qmetrysupport.atlassian.net for more information");
+			listener.getLogger().println("-------------------------------------------------------------------------------");
 			//return false;
 			throw new AbortException();
 		}
 
 		listener.getLogger().println(pluginName + " : Successfully finished Post Build Action!");
+		listener.getLogger().println("-------------------------------------------------------------------------------");
         //return true;
     }
 
@@ -304,6 +346,21 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
             }
             return FormValidation.ok();
         }
+		
+		public FormValidation doCheckBuildName(@QueryParameter String release, @QueryParameter String cycle, @QueryParameter String buildName) throws IOException, ServletException
+		{
+			if(buildName!=null && buildName.length()>0)
+			{
+				if(release==null || release.length()<1) {
+					return FormValidation.error("Please provide release ID or Name!");
+				}
+				else if(cycle==null || cycle.length()<1)
+				{
+					return FormValidation.error("Please provide cycle ID or Name!");
+				}
+			}
+			return FormValidation.ok();
+		}
 
         @Override
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {

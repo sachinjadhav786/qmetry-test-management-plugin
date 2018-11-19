@@ -51,11 +51,11 @@ public class QMetryConnection {
         return true;
     }
 
-    public void uploadFileToTestSuite(String filePath, String testSuiteName, String automationFramework,
-            String buildName, String platformName, String project, String release, String cycle, String pluginName, /*BuildListener*/TaskListener listener)
-            throws QMetryException {
-		try
-		{
+    public void uploadFileToTestSuite(String filePath, String testSuiteName, String testSName, String automationFramework,
+            String buildName, String platformName, String project, String release, String cycle, String pluginName, /*BuildListener*/TaskListener listener, int buildnumber)
+            throws QMetryException, IOException {
+		//try
+		//{
 			CloseableHttpClient httpClient = null;
 			CloseableHttpResponse response = null;
 			
@@ -64,12 +64,17 @@ public class QMetryConnection {
 			listener.getLogger().println(pluginName + " : uploading result file(s) of type '"+automationFramework+"'");
 			builder.addTextBody("entityType", automationFramework, ContentType.TEXT_PLAIN);
 			if(testSuiteName!=null && !testSuiteName.isEmpty()) {
-				listener.getLogger().println(pluginName + " : target test suite '"+testSuiteName+"'");
+				listener.getLogger().println(pluginName + " : target test suite id '"+testSuiteName+"'");
 				builder.addTextBody("testsuiteId", testSuiteName, ContentType.TEXT_PLAIN);
 			}
+			if(testSName!=null && !testSName.isEmpty())
+			{
+				listener.getLogger().println(pluginName + " : test suite name '"+testSName+"'");
+				builder.addTextBody("testsuiteName", testSName + "_#" + buildnumber, ContentType.TEXT_PLAIN);
+			}
 			if(buildName!=null && !buildName.isEmpty()) {
-				listener.getLogger().println(pluginName + " : using build (or drop) '"+buildName+"'");
-				builder.addTextBody("dropID", buildName, ContentType.TEXT_PLAIN);
+				listener.getLogger().println(pluginName + " : using build '"+buildName+"'");
+				builder.addTextBody("buildID", buildName, ContentType.TEXT_PLAIN);
 			}
 			if(platformName!=null && !platformName.isEmpty()) {
 				listener.getLogger().println(pluginName + " : target platform '"+platformName+"'");
@@ -108,12 +113,13 @@ public class QMetryConnection {
 					JSONObject jsonresponse = (JSONObject) new JSONParser().parse(responseString);
 					if(jsonresponse.get("success").toString().equals("true"))
 					{
-						JSONArray data = (JSONArray) jsonresponse.get("data");
+						/*JSONArray data = (JSONArray) jsonresponse.get("data");
 						JSONObject dataObj = (JSONObject) data.get(0);
 						listener.getLogger().println(pluginName + " : Result file(s) successfully uploaded");
 						listener.getLogger().println(pluginName + " : Test Suite ID : "+dataObj.get("testsuiteId").toString());
 						listener.getLogger().println(pluginName + " : Build ID : "+dataObj.get("buildID").toString());
-						listener.getLogger().println(pluginName + " : Platform ID : "+dataObj.get("platformID").toString());
+						listener.getLogger().println(pluginName + " : Platform ID : "+dataObj.get("platformID").toString());*/
+						listener.getLogger().println(pluginName + " : Response --> " + jsonresponse.toString().replace("\\/","/"));
 					}
 					else
 					{
@@ -134,11 +140,11 @@ public class QMetryConnection {
 			}
 			httpClient.close();
 			response.close();
-		}
+		/*}
 		catch(IOException e)
 		{
 			listener.getLogger().println(pluginName+" : ERROR :: QMetryConnection in uploadFileToTestSuite : "+e.toString());
 			throw new QMetryException("Failed to upload result files to QMetry!");
-		}
+		}*/
 	}
 }
