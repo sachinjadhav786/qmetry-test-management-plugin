@@ -2,24 +2,18 @@ package com.qmetry;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.InterruptedException;
-import java.lang.NullPointerException;
 
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
 import hudson.FilePath;
-import hudson.model.FreeStyleProject;
 import jenkins.model.Jenkins;
 import hudson.model.Computer;
-import hudson.model.Hudson.MasterComputer;
 import hudson.slaves.SlaveComputer;
 import hudson.model.Node;
+import hudson.model.Hudson.MasterComputer;
 
 import hudson.model.TaskListener;
 import hudson.model.Run;
-import hudson.FilePath;
 import hudson.model.AbstractProject;
 import hudson.model.TopLevelItem;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
@@ -27,8 +21,25 @@ import java.util.List;
 
 public class QMetryResultUtil
 {	
+
+	private boolean onSlave = false;
+	private File qtmFile;
+
+	public boolean isOnSlave()
+	{
+		return onSlave;
+	}
+
+	public File getQtmFile()
+	{
+		return qtmFile;
+	}
+
 	public File prepareResultFile(String filePath, /*AbstractBuild build*/Run<?, ?> run, String pluginName, /*BuildListener*/TaskListener listener, FilePath workspace, String automationFramework) throws QMetryException, IOException, InterruptedException {
 		//try {
+			onSlave = false;
+			qtmFile = null;
+
 			if(filePath.startsWith("/")) {
 					filePath = filePath.substring(1, filePath.length());
 			}
@@ -55,12 +66,12 @@ public class QMetryResultUtil
 						if(comp1!=null)
 						{
 							if(comp1 instanceof SlaveComputer) {
+								onSlave = true;
 								listener.getLogger().println(pluginName + " : build taking place on slave machine");
 								FilePath slaveMachineWorkspace = workspace;
 								if(!slaveMachineWorkspace.exists()) {
 									throw new QMetryException("Failed to access slave machine workspace directory");
 								}
-								listener.getLogger().println(pluginName + " : slave machine workspace at '"+slaveMachineWorkspace.toURI().toString()+"'");
 								
 								//for last modified folder in QAS
 								FilePath f = null;
@@ -108,7 +119,7 @@ public class QMetryResultUtil
 									//create directory if not yet exists
 									masterMachineWorkspace.mkdirs();
 								}
-								listener.getLogger().println(pluginName + " : master machine workspace at '"+masterMachineWorkspace.toURI().toString()+"'");
+								masterMachineWorkspace = new FilePath(masterMachineWorkspace,"QTM");
 								
 								if(!filePath.endsWith("/") && !filePath.endsWith("json") && !filePath.endsWith("xml")) {
 									filePath = filePath + "/";
@@ -118,8 +129,8 @@ public class QMetryResultUtil
 								if(fileCount<1) {
 									throw new QMetryException("Failed to copy result file(s) from slave machine!");
 								}
-								listener.getLogger().println(pluginName + " : "+fileCount+" result file(s) copied from slave to master machine");
 								File finalResultFile = new File(masterMachineWorkspace.toURI());
+								qtmFile = finalResultFile;
 								finalResultFile = new File(finalResultFile, filePath);
 								if(!finalResultFile.exists()) {
 									throw new QMetryException("Failed to read result file(s) on master machine");
@@ -128,6 +139,7 @@ public class QMetryResultUtil
 							}
 							else if(comp1 instanceof MasterComputer)
 							{
+								onSlave = false;
 								listener.getLogger().println(pluginName + " : build taking place on master machine");
 								//File masterWorkspace = new File(build.getProject().getWorkspace().toURI());
 								File masterWorkspace = new File(workspace.toString());
@@ -193,6 +205,7 @@ public class QMetryResultUtil
 											String testSuiteName,
 											String testSName,
 											String automationFramework,
+											String automationHierarchy,
 											String buildName,
 											String platformName,
 											String project,
@@ -233,7 +246,7 @@ public class QMetryResultUtil
 				{
 					throw new QMetryException("Results' directory of type "+automationFramework+" not found in given directory '"+resultFile.getAbsolutePath()+"'");
 				}
-				conn.uploadFileToTestSuite(filepath, testSuiteName, testSName, automationFramework, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber);
+				conn.uploadFileToTestSuite(filepath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber);
 			}
 			else if (resultFilePath.endsWith("*.xml") || resultFilePath.endsWith("*.json"))
 			{
@@ -275,7 +288,7 @@ public class QMetryResultUtil
 					for(File f: filelist)
 					{
 						listener.getLogger().println(pluginName + " : Uploading file : " + f.getAbsolutePath() + "...");
-						conn.uploadFileToTestSuite(f.getAbsolutePath(), testSuiteName, testSName, automationFramework, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber);
+						conn.uploadFileToTestSuite(f.getAbsolutePath(), testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber);
 					}
 				}
 			}
@@ -291,7 +304,7 @@ public class QMetryResultUtil
 					throw new QMetryException("Cannot upload json file when format is " + automationFramework);
 				}
 				listener.getLogger().println(pluginName + " : Reading result files from path '"+resultFile.getAbsolutePath()+"'");
-				conn.uploadFileToTestSuite(rPath, testSuiteName, testSName, automationFramework, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber);
+				conn.uploadFileToTestSuite(rPath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber);
 			}
 			else 
 			{

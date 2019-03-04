@@ -1,6 +1,11 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"> 
 	<f:section title="Qmetry Configuration">
+
+		<f:entry title="Disable This Action" field="disableaction">
+    		<f:checkbox/>
+  		</f:entry>
+
 		<f:entry title="QMetry URL" field="qtmUrl">
 			<f:textbox placeholder="https://qtm-instance-uri/" />
 		</f:entry>
@@ -8,12 +13,16 @@
 		<f:entry title="Automation API Key" field="qtmAutomationApiKey">
 			<f:textbox placeholder="Your QMetry project automation API Key" />
 		</f:entry>
-		
-		<f:entry title="Automation Framework" field="automationFramework">
+
+		<f:entry title="Automation Framework" field="automationFramework" >
 			<f:select />
 		</f:entry>
 		
-		<f:entry title="Result File(s) Path/Directory" field="testResultFilePath">
+		<f:entry title="Automation Hierarchy" field="automationHierarchy">
+			<f:select placeholder="Default Hierarchy Supported"/>
+		</f:entry>
+		
+		<f:entry title="Result File(s) Path/Directory" field="testResultFilePath" readonly="readonly">
 			<f:textbox placeholder="/path/to/result.xml(.json)" />
 		</f:entry>
 		
@@ -25,8 +34,8 @@
 			<f:textbox placeholder="QMetry Test Suite ID or Entity Key" />
 		</f:entry>
 		
-		<f:entry title="Test Suite Name" field="testSName">
-			<f:textbox placeholder="Test Suite Name" />
+		<f:entry title="Test Suite Name" field="testSName" >
+			<f:textbox placeholder="Test Suite Name" id="testSName"/>
 		</f:entry>
 		
 		<f:entry title="Release" field="release">
@@ -44,5 +53,6 @@
 		<f:entry title="Platform" field="platformName">
 			<f:textbox placeholder="Enter Platform name or Id"/>
 		</f:entry>
+	
 	</f:section>
 </j:jelly>

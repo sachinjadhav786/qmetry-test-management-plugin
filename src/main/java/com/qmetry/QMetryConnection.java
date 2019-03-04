@@ -1,19 +1,11 @@
 package com.qmetry;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.HashMap;
 import java.io.File;
 import java.io.IOException;
-import java.net.ProtocolException;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.entity.StringEntity;
-import org.apache.commons.httpclient.auth.InvalidCredentialsException;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.content.FileBody;
@@ -22,7 +14,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import org.json.simple.JSONObject;
-import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 //import hudson.model.BuildListener;
@@ -51,7 +42,7 @@ public class QMetryConnection {
         return true;
     }
 
-    public void uploadFileToTestSuite(String filePath, String testSuiteName, String testSName, String automationFramework,
+    public void uploadFileToTestSuite(String filePath, String testSuiteName, String testSName, String automationFramework, String automationHierarchy,
             String buildName, String platformName, String project, String release, String cycle, String pluginName, /*BuildListener*/TaskListener listener, int buildnumber)
             throws QMetryException, IOException {
 		//try
@@ -63,6 +54,15 @@ public class QMetryConnection {
 			
 			listener.getLogger().println(pluginName + " : uploading result file(s) of type '"+automationFramework+"'");
 			builder.addTextBody("entityType", automationFramework, ContentType.TEXT_PLAIN);
+			if(automationHierarchy!=null && !automationHierarchy.isEmpty())
+			{
+				if(automationFramework.equals("TESTNG") || automationFramework.equals("JUNIT"))
+				{
+					listener.getLogger().println(pluginName + " : automation hierarchy '" + automationHierarchy + "'");
+					builder.addTextBody("automationHierarchy", automationHierarchy, ContentType.TEXT_PLAIN);
+				}
+			}
+			
 			if(testSuiteName!=null && !testSuiteName.isEmpty()) {
 				listener.getLogger().println(pluginName + " : target test suite id '"+testSuiteName+"'");
 				builder.addTextBody("testsuiteId", testSuiteName, ContentType.TEXT_PLAIN);
@@ -113,12 +113,6 @@ public class QMetryConnection {
 					JSONObject jsonresponse = (JSONObject) new JSONParser().parse(responseString);
 					if(jsonresponse.get("success").toString().equals("true"))
 					{
-						/*JSONArray data = (JSONArray) jsonresponse.get("data");
-						JSONObject dataObj = (JSONObject) data.get(0);
-						listener.getLogger().println(pluginName + " : Result file(s) successfully uploaded");
-						listener.getLogger().println(pluginName + " : Test Suite ID : "+dataObj.get("testsuiteId").toString());
-						listener.getLogger().println(pluginName + " : Build ID : "+dataObj.get("buildID").toString());
-						listener.getLogger().println(pluginName + " : Platform ID : "+dataObj.get("platformID").toString());*/
 						listener.getLogger().println(pluginName + " : Response --> " + jsonresponse.toString().replace("\\/","/"));
 					}
 					else
@@ -140,11 +134,5 @@ public class QMetryConnection {
 			}
 			httpClient.close();
 			response.close();
-		/*}
-		catch(IOException e)
-		{
-			listener.getLogger().println(pluginName+" : ERROR :: QMetryConnection in uploadFileToTestSuite : "+e.toString());
-			throw new QMetryException("Failed to upload result files to QMetry!");
-		}*/
 	}
 }
