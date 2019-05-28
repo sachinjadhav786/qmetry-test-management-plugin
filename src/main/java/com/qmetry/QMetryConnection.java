@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -12,6 +13,7 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.client.config.RequestConfig;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -43,7 +45,7 @@ public class QMetryConnection {
     }
 
     public void uploadFileToTestSuite(String filePath, String testSuiteName, String testSName, String automationFramework, String automationHierarchy,
-            String buildName, String platformName, String project, String release, String cycle, String pluginName, /*BuildListener*/TaskListener listener, int buildnumber)
+            String buildName, String platformName, String project, String release, String cycle, String pluginName, /*BuildListener*/TaskListener listener, int buildnumber, String proxyUrl)
             throws QMetryException, IOException {
 		//try
 		//{
@@ -102,6 +104,14 @@ public class QMetryConnection {
 			uploadFile.addHeader("scope", "default");
 			uploadFile.addHeader("apiKey", getKey());
 			uploadFile.setEntity(multipart);
+
+			if(proxyUrl != null && !proxyUrl.isEmpty())
+			{
+				listener.getLogger().println(pluginName + " : Proxy Url '" + proxyUrl + "'");
+				//Setting proxy
+				RequestConfig config = RequestConfig.custom().setProxy(HttpHost.create(proxyUrl)).build();
+				uploadFile.setConfig(config);
+			}
 
 			httpClient = HttpClients.createDefault();
 			response = httpClient.execute(uploadFile);

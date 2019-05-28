@@ -14,6 +14,10 @@
 			<f:textbox placeholder="Your QMetry project automation API Key" />
 		</f:entry>
 
+		<f:entry title="Proxy URL" field="proxyUrl">
+			<f:textbox placeholder="Proxy URL" />
+		</f:entry>
+
 		<f:entry title="Automation Framework" field="automationFramework" >
 			<f:select />
 		</f:entry>

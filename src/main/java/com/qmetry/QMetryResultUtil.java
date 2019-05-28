@@ -201,6 +201,7 @@ public class QMetryResultUtil
 											FilePath workspace,
 											String url,
 											String key,
+											String proxyUrl,
 											String resultFilePath,
 											String testSuiteName,
 											String testSName,
@@ -246,7 +247,7 @@ public class QMetryResultUtil
 				{
 					throw new QMetryException("Results' directory of type "+automationFramework+" not found in given directory '"+resultFile.getAbsolutePath()+"'");
 				}
-				conn.uploadFileToTestSuite(filepath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber);
+				conn.uploadFileToTestSuite(filepath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl);
 			}
 			else if (resultFilePath.endsWith("*.xml") || resultFilePath.endsWith("*.json"))
 			{
@@ -288,7 +289,7 @@ public class QMetryResultUtil
 					for(File f: filelist)
 					{
 						listener.getLogger().println(pluginName + " : Uploading file : " + f.getAbsolutePath() + "...");
-						conn.uploadFileToTestSuite(f.getAbsolutePath(), testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber);
+						conn.uploadFileToTestSuite(f.getAbsolutePath(), testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl);
 					}
 				}
 			}
@@ -304,7 +305,7 @@ public class QMetryResultUtil
 					throw new QMetryException("Cannot upload json file when format is " + automationFramework);
 				}
 				listener.getLogger().println(pluginName + " : Reading result files from path '"+resultFile.getAbsolutePath()+"'");
-				conn.uploadFileToTestSuite(rPath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber);
+				conn.uploadFileToTestSuite(rPath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl);
 			}
 			else 
 			{

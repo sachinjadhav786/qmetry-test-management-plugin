@@ -33,6 +33,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
     private final boolean disableaction;
     private final String qtmUrl;
     private final String qtmAutomationApiKey;
+    private final String proxyUrl;
     private final String automationFramework;
     private final String automationHierarchy;
     private final String testResultFilePath;
@@ -45,13 +46,14 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
     private final String cycle;
     
     @DataBoundConstructor
-    public QTMReportPublisher(final String qtmUrl, final String qtmAutomationApiKey, final String automationFramework, final String automationHierarchy,
+    public QTMReportPublisher(final String qtmUrl, final String qtmAutomationApiKey, final String proxyUrl, final String automationFramework, final String automationHierarchy,
                               final String testResultFilePath, final String buildName, final String testSuiteName, final String testSName, final String platformName,
                               final String project, final String release, final String cycle, final boolean disableaction) {
         
         this.disableaction = disableaction;
         this.qtmUrl = qtmUrl;
         this.qtmAutomationApiKey = qtmAutomationApiKey;
+        this.proxyUrl = proxyUrl;
         this.automationFramework = automationFramework;
         this.automationHierarchy = automationHierarchy;
         this.testResultFilePath = testResultFilePath;
@@ -75,6 +77,11 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
     
     public String getQtmAutomationApiKey() {
         return this.qtmAutomationApiKey;
+    }
+
+    public String getProxyUrl()
+    {
+        return this.proxyUrl;
     }
     
     public String getAutomationFramework() {
@@ -141,6 +148,8 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                 String qtmUrl_chkd = StringUtils.trimToEmpty(getQtmUrl());
                 
                 String qtmAutomationApiKey_chkd = StringUtils.trimToEmpty(getQtmAutomationApiKey());
+
+                String proxyUrl_chkd = StringUtils.trimToEmpty(getProxyUrl());
                 
                 String automationFramework_chkd = StringUtils.trimToEmpty(getAutomationFramework());
                 
@@ -166,6 +175,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                 {
                     qtmUrl_chkd = env.expand(qtmUrl_chkd);
                     qtmAutomationApiKey_chkd = env.expand(qtmAutomationApiKey_chkd);
+                    proxyUrl_chkd = env.expand(proxyUrl_chkd);
                     automationFramework_chkd = env.expand(automationFramework_chkd);
                     automationHierarchy_chkd = env.expand(automationHierarchy_chkd);
                     testResultFilePath_chkd = env.expand(testResultFilePath_chkd);
@@ -251,6 +261,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                                                      workspace,
                                                      qtmUrl_chkd,
                                                      qtmAutomationApiKey_chkd,
+                                                     proxyUrl_chkd,
                                                      testResultFilePath_chkd,
                                                      testSuiteName_chkd,
                                                      testSName_chkd,
