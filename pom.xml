@@ -8,7 +8,7 @@
         <relativePath />
     </parent>
     <artifactId>qmetry-test-management</artifactId>
-    <version>1.7-SNAPSHOT</version>
+    <version>1.7</version>
     <packaging>hpi</packaging>
     <properties>
         <jenkins.version>2.7.3</jenkins.version>
@@ -20,7 +20,7 @@
         <connection>scm:git:ssh://github.com/jenkinsci/qmetry-test-management-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/qmetry-test-management-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/qmetry-test-management-plugin</url>
-		<tag>HEAD</tag>
+		<tag>qmetry-test-management-1.7</tag>
 	</scm>
     <licenses>
 		<license>
