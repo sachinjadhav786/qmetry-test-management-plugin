@@ -21,6 +21,9 @@ import org.apache.commons.io.FileUtils;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
+
+import com.ctc.wstx.util.StringUtil;
+
 import org.apache.commons.lang.StringUtils;
 
 import jenkins.tasks.SimpleBuildStep;
@@ -44,11 +47,13 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
     private final String project;
     private final String release;
     private final String cycle;
+    private final String testcaseFields;
+    private final String testsuiteFields;
     
     @DataBoundConstructor
     public QTMReportPublisher(final String qtmUrl, final String qtmAutomationApiKey, final String proxyUrl, final String automationFramework, final String automationHierarchy,
                               final String testResultFilePath, final String buildName, final String testSuiteName, final String testSName, final String platformName,
-                              final String project, final String release, final String cycle, final boolean disableaction) {
+                              final String project, final String release, final String cycle, final boolean disableaction, final String testcaseFields, final String testsuiteFields) {
         
         this.disableaction = disableaction;
         this.qtmUrl = qtmUrl;
@@ -64,10 +69,11 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
         this.project = project;
         this.cycle = cycle;
         this.release = release;
+        this.testcaseFields = testcaseFields;
+        this.testsuiteFields = testsuiteFields;
     }
     
-    public boolean isDisableaction()
-    {
+    public boolean isDisableaction() {
         return this.disableaction;
     }
     
@@ -79,8 +85,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
         return this.qtmAutomationApiKey;
     }
 
-    public String getProxyUrl()
-    {
+    public String getProxyUrl() {
         return this.proxyUrl;
     }
     
@@ -123,8 +128,16 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
     public String getCycle() {
         return this.cycle;
     }
-    
-    @Override
+         
+	public String getTestcaseFields() {
+		return testcaseFields;
+	}
+
+	public String getTestsuiteFields() {
+		return testsuiteFields;
+	}
+
+	@Override
     //public boolean perform(final AbstractBuild build, final Launcher launcher, final BuildListener listener)
     public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws AbortException
     {
@@ -171,6 +184,10 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                 
                 String project_chkd = StringUtils.trimToEmpty(getProject());
                 
+                String testCaseField_chkd = StringUtils.trimToEmpty(getTestcaseFields());
+                
+                String testSuiteField_chkd = StringUtils.trimToEmpty(getTestsuiteFields());
+                
                 if(env != null)
                 {
                     qtmUrl_chkd = env.expand(qtmUrl_chkd);
@@ -186,6 +203,8 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                     release_chkd= env.expand(release_chkd);
                     cycle_chkd= env.expand(cycle_chkd);
                     project_chkd= env.expand(project_chkd);
+                    testCaseField_chkd = env.expand(testCaseField_chkd);
+                    testSuiteField_chkd =  env.expand(testSuiteField_chkd);
                 }
                 
                 String displayName = pluginName + " : Starting Post Build Action";
@@ -272,7 +291,9 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                                                      project_chkd,
                                                      release_chkd,
                                                      cycle_chkd,
-                                                     buildnumber);
+                                                     buildnumber,
+                                                     testCaseField_chkd,
+                                                     testSuiteField_chkd);
             }
             catch (QMetryException e)
             {
@@ -452,7 +473,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
         
         @Override
         public String getDisplayName() {
-            return "Publish Build Result(s) to QMetry Test Management";
+            return "Publish Build Result(s) to QMetry Test Management 8.5.4";
         }
     }
 }

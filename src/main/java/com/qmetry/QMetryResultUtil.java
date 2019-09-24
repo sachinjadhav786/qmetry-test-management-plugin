@@ -212,11 +212,13 @@ public class QMetryResultUtil
 											String project,
 											String release,
 											String cycle,
-											int buildnumber) throws QMetryException, IOException, InterruptedException
+											int buildnumber, 
+											String testCaseField, 
+											String testSuiteField) throws QMetryException, IOException, InterruptedException
 	{
 		//try 
 		//{
-			File resultFile = prepareResultFile(resultFilePath, /*build*/run, pluginName, listener,workspace, automationFramework);
+			File resultFile = prepareResultFile(resultFilePath, /*build*/run, pluginName, listener, workspace, automationFramework);
 						
 			QMetryConnection conn = new QMetryConnection(url, key);
 			
@@ -247,7 +249,7 @@ public class QMetryResultUtil
 				{
 					throw new QMetryException("Results' directory of type "+automationFramework+" not found in given directory '"+resultFile.getAbsolutePath()+"'");
 				}
-				conn.uploadFileToTestSuite(filepath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl);
+				conn.uploadFileToTestSuite(filepath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl, testCaseField, testSuiteField);
 			}
 			else if (resultFilePath.endsWith("*.xml") || resultFilePath.endsWith("*.json"))
 			{
@@ -289,7 +291,7 @@ public class QMetryResultUtil
 					for(File f: filelist)
 					{
 						listener.getLogger().println(pluginName + " : Uploading file : " + f.getAbsolutePath() + "...");
-						conn.uploadFileToTestSuite(f.getAbsolutePath(), testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl);
+						conn.uploadFileToTestSuite(f.getAbsolutePath(), testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl, testCaseField, testSuiteField);
 					}
 				}
 			}
@@ -305,7 +307,7 @@ public class QMetryResultUtil
 					throw new QMetryException("Cannot upload json file when format is " + automationFramework);
 				}
 				listener.getLogger().println(pluginName + " : Reading result files from path '"+resultFile.getAbsolutePath()+"'");
-				conn.uploadFileToTestSuite(rPath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl);
+				conn.uploadFileToTestSuite(rPath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl, testCaseField, testSuiteField);
 			}
 			else 
 			{

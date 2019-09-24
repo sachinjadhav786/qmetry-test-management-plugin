@@ -43,9 +43,9 @@ public class QMetryConnection {
         // TODO validate URL,Key
         return true;
     }
-
+    
     public void uploadFileToTestSuite(String filePath, String testSuiteName, String testSName, String automationFramework, String automationHierarchy,
-            String buildName, String platformName, String project, String release, String cycle, String pluginName, /*BuildListener*/TaskListener listener, int buildnumber, String proxyUrl)
+            String buildName, String platformName, String project, String release, String cycle, String pluginName, /*BuildListener*/TaskListener listener, int buildnumber, String proxyUrl, String testCaseField, String testSuiteField)
             throws QMetryException, IOException {
 		//try
 		//{
@@ -93,6 +93,16 @@ public class QMetryConnection {
 					listener.getLogger().println(pluginName + " : using cycle '"+cycle+"'");
 					builder.addTextBody("cycleID", cycle, ContentType.TEXT_PLAIN);
 				}
+			}
+			
+			if(testCaseField!=null && !testCaseField.isEmpty()) {
+				listener.getLogger().println(pluginName + " : target test case Fields '"+ testCaseField +"'");
+				builder.addTextBody("testcase_fields", testCaseField, ContentType.TEXT_PLAIN);
+			}
+			
+			if(testSuiteField!=null && !testSuiteField.isEmpty()) {
+				listener.getLogger().println(pluginName + " : target test suite Fields '"+ testSuiteField +"'");
+				builder.addTextBody("testsuite_fields", testSuiteField, ContentType.TEXT_PLAIN);
 			}
 
 			File f = new File(filePath);

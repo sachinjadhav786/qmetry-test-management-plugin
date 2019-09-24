@@ -57,6 +57,14 @@
 		<f:entry title="Platform" field="platformName">
 			<f:textbox placeholder="Enter Platform name or Id"/>
 		</f:entry>
+		
+		<f:entry title="Test Case Fields" field="testcaseFields">
+			<f:textbox placeholder="Enter Test Case Fields"/>
+		</f:entry>
+		
+		<f:entry title="Test Suite Fields" field="testsuiteFields">
+			<f:textbox placeholder="Enter Test Suite Fields"/>
+		</f:entry>
 	
 	</f:section>
 </j:jelly>
