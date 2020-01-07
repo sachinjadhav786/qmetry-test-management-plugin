@@ -473,7 +473,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
         
         @Override
         public String getDisplayName() {
-            return "Publish Build Result(s) to QMetry Test Management 8.5.4";
+            return "Publish Build Result(s) to QMetry Test Management";
         }
     }
 }
