@@ -214,7 +214,8 @@ public class QMetryResultUtil
 											String cycle,
 											int buildnumber, 
 											String testCaseField, 
-											String testSuiteField) throws QMetryException, IOException, InterruptedException
+											String testSuiteField, 
+											String skipWarning) throws QMetryException, IOException, InterruptedException
 	{
 		//try 
 		//{
@@ -249,7 +250,7 @@ public class QMetryResultUtil
 				{
 					throw new QMetryException("Results' directory of type "+automationFramework+" not found in given directory '"+resultFile.getAbsolutePath()+"'");
 				}
-				conn.uploadFileToTestSuite(filepath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl, testCaseField, testSuiteField);
+				conn.uploadFileToTestSuite(filepath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl, testCaseField, testSuiteField, skipWarning);
 			}
 			else if (resultFilePath.endsWith("*.xml") || resultFilePath.endsWith("*.json"))
 			{
@@ -266,7 +267,7 @@ public class QMetryResultUtil
 				};
 
 				File[] filelist = null;
-				if(automationFramework.equals("JUNIT") || automationFramework.equals("TESTNG") || automationFramework.equals("HPUFT"))
+				if(automationFramework.equals("JUNIT") || automationFramework.equals("TESTNG") || automationFramework.equals("HPUFT") || automationFramework.equals("ROBOT"))
 				{
 					if(resultFilePath.endsWith("*.json"))
 					{
@@ -291,14 +292,14 @@ public class QMetryResultUtil
 					for(File f: filelist)
 					{
 						listener.getLogger().println(pluginName + " : Uploading file : " + f.getAbsolutePath() + "...");
-						conn.uploadFileToTestSuite(f.getAbsolutePath(), testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl, testCaseField, testSuiteField);
+						conn.uploadFileToTestSuite(f.getAbsolutePath(), testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl, testCaseField, testSuiteField, skipWarning);
 					}
 				}
 			}
 			else if(resultFile.isFile())
 			{
 				String rPath = resultFile.getAbsolutePath();
-				if(rPath.endsWith(".xml") && !(automationFramework.equals("JUNIT") || automationFramework.equals("HPUFT") || automationFramework.equals("TESTNG")))
+				if(rPath.endsWith(".xml") && !(automationFramework.equals("JUNIT") || automationFramework.equals("HPUFT") || automationFramework.equals("TESTNG") || automationFramework.equals("ROBOT")))
 				{
 					throw new QMetryException("Cannot upload xml file when format is " + automationFramework);
 				}
@@ -307,7 +308,7 @@ public class QMetryResultUtil
 					throw new QMetryException("Cannot upload json file when format is " + automationFramework);
 				}
 				listener.getLogger().println(pluginName + " : Reading result files from path '"+resultFile.getAbsolutePath()+"'");
-				conn.uploadFileToTestSuite(rPath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl, testCaseField, testSuiteField);
+				conn.uploadFileToTestSuite(rPath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl, testCaseField, testSuiteField, skipWarning);
 			}
 			else 
 			{

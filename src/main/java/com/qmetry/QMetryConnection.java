@@ -45,7 +45,7 @@ public class QMetryConnection {
     }
     
     public void uploadFileToTestSuite(String filePath, String testSuiteName, String testSName, String automationFramework, String automationHierarchy,
-            String buildName, String platformName, String project, String release, String cycle, String pluginName, /*BuildListener*/TaskListener listener, int buildnumber, String proxyUrl, String testCaseField, String testSuiteField)
+            String buildName, String platformName, String project, String release, String cycle, String pluginName, /*BuildListener*/TaskListener listener, int buildnumber, String proxyUrl, String testCaseField, String testSuiteField, String skipWarning)
             throws QMetryException, IOException {
 		//try
 		//{
@@ -103,6 +103,11 @@ public class QMetryConnection {
 			if(testSuiteField!=null && !testSuiteField.isEmpty()) {
 				listener.getLogger().println(pluginName + " : target test suite Fields '"+ testSuiteField +"'");
 				builder.addTextBody("testsuite_fields", testSuiteField, ContentType.TEXT_PLAIN);
+			}
+			
+			if(skipWarning!=null && !skipWarning.isEmpty()) {
+				listener.getLogger().println(pluginName + " : skip warning '"+ skipWarning +"'");
+				builder.addTextBody("skipWarning", skipWarning, ContentType.TEXT_PLAIN);
 			}
 
 			File f = new File(filePath);

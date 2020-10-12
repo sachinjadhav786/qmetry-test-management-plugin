@@ -1,35 +1,31 @@
 package com.qmetry;
 
-import hudson.Extension;
-import hudson.Launcher;
-import hudson.EnvVars;
-import hudson.FilePath;
-//import hudson.model.BuildListener;
-//import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Recorder;
-import hudson.tasks.Publisher;
-import hudson.util.ListBoxModel;
-import hudson.util.FormValidation;
+import java.io.IOException;
 
 import javax.servlet.ServletException;
-import java.io.IOException;
+
 import org.apache.commons.io.FileUtils;
-
-
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
-import com.ctc.wstx.util.StringUtil;
-
-import org.apache.commons.lang.StringUtils;
-
-import jenkins.tasks.SimpleBuildStep;
-import hudson.model.TaskListener;
-import hudson.model.Run;
 import hudson.AbortException;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+//import hudson.model.BuildListener;
+//import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.BuildStepMonitor;
+import hudson.tasks.Publisher;
+import hudson.tasks.Recorder;
+import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
+import jenkins.tasks.SimpleBuildStep;
 
 public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
     
@@ -49,11 +45,12 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
     private final String cycle;
     private final String testcaseFields;
     private final String testsuiteFields;
+    private final String skipWarning;
     
     @DataBoundConstructor
     public QTMReportPublisher(final String qtmUrl, final String qtmAutomationApiKey, final String proxyUrl, final String automationFramework, final String automationHierarchy,
                               final String testResultFilePath, final String buildName, final String testSuiteName, final String testSName, final String platformName,
-                              final String project, final String release, final String cycle, final boolean disableaction, final String testcaseFields, final String testsuiteFields) {
+                              final String project, final String release, final String cycle, final boolean disableaction, final String testcaseFields, final String testsuiteFields, final String skipWarning) {
         
         this.disableaction = disableaction;
         this.qtmUrl = qtmUrl;
@@ -71,6 +68,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
         this.release = release;
         this.testcaseFields = testcaseFields;
         this.testsuiteFields = testsuiteFields;
+        this.skipWarning = skipWarning;
     }
     
     public boolean isDisableaction() {
@@ -126,16 +124,20 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
     }
     
     public String getCycle() {
-        return this.cycle;
+	return this.cycle;
     }
-         
-	public String getTestcaseFields() {
-		return testcaseFields;
-	}
 
-	public String getTestsuiteFields() {
-		return testsuiteFields;
-	}
+    public String getTestcaseFields() {
+	return testcaseFields;
+    }
+
+    public String getTestsuiteFields() {
+	return testsuiteFields;
+    }
+    
+    public String getSkipWarning() {
+	return skipWarning;
+    }
 
 	@Override
     //public boolean perform(final AbstractBuild build, final Launcher launcher, final BuildListener listener)
@@ -188,6 +190,8 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                 
                 String testSuiteField_chkd = StringUtils.trimToEmpty(getTestsuiteFields());
                 
+                String skipWarning_chkd = StringUtils.trimToEmpty(getSkipWarning());
+                
                 if(env != null)
                 {
                     qtmUrl_chkd = env.expand(qtmUrl_chkd);
@@ -205,6 +209,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                     project_chkd= env.expand(project_chkd);
                     testCaseField_chkd = env.expand(testCaseField_chkd);
                     testSuiteField_chkd =  env.expand(testSuiteField_chkd);
+                    skipWarning_chkd = env.expand(skipWarning_chkd);
                 }
                 
                 String displayName = pluginName + " : Starting Post Build Action";
@@ -223,7 +228,8 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                      || automationFramework_chkd.equals("TESTNG")
                      || automationFramework_chkd.equals("JUNIT")
                      || automationFramework_chkd.equals("QAS")
-                     || automationFramework_chkd.equals("HPUFT")))
+                     || automationFramework_chkd.equals("HPUFT")
+                     || automationFramework_chkd.equals("ROBOT")))
                 {
                     throw new QMetryException("Please enter a valid automation framework [CUCUMBER/JUNIT/TESTNG/QAS/HPUFT]");
                 }
@@ -255,6 +261,14 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                         {
                             listener.getLogger().println(pluginName + " : Skipping automationHierarchy becuase it is not supported for framework: " + automationFramework_chkd);
                         }
+                    }
+                }
+                
+                if(StringUtils.isNotEmpty(skipWarning_chkd))
+                {
+                    if(!(skipWarning_chkd.equals("0") || skipWarning_chkd.equals("1")))
+                    {
+                        throw new QMetryException("Please provide valid skipWarning value");
                     }
                 }
                 
@@ -293,7 +307,8 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                                                      cycle_chkd,
                                                      buildnumber,
                                                      testCaseField_chkd,
-                                                     testSuiteField_chkd);
+                                                     testSuiteField_chkd,
+                                                     skipWarning_chkd);
             }
             catch (QMetryException e)
             {
@@ -371,6 +386,14 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
             items.add("TestNG", "TESTNG");
             items.add("QAS", "QAS");
             items.add("HP-UFT", "HPUFT");
+            items.add("Robot", "ROBOT");
+            return items;
+        }
+        
+        public ListBoxModel doFillSkipWarningItems() {
+            ListBoxModel items = new ListBoxModel();
+            items.add("0 - Test Case Import will be failed if the Test Case summary is more than 255 characters","0");
+            items.add("1 - Test Case will be imported by truncating the Test Case summary to 255 characters","1");
             return items;
         }
         
