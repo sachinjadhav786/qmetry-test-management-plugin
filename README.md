@@ -36,14 +36,18 @@ Fill the QMetry configuration form as per your requirement.
 
 * **QMetry instance URL** - url to your qtm instance
 * **Automation API Key** - Automation Key
-* **Automation Framework** - JUNIT/TESTNG/CUCUMBER/QAS/HP-UFT
-* **Test Suite** (optional) - Key of test suite.
+* **Automation Framework** - JUNIT/TESTNG/CUCUMBER/QAS/HP-UFT/ROBOT/JSON
+* **Automation Hierarchy** - Hierarchy which will be used to parse test result files on QTM
+* **Result File(s) Path/Directory** - path to result file (or directory for multiple files) relative to build directory
 * **Project** - Name, ID or Key of QMetry Project
+* **Test Suite ID** (optional) - Key/ID of test suite to be reused
+* **Test Suite Name** (optional) - Test Suite Name (This will create a new test suite with given name)
 * **Release** (optional if cycle not present) - Target Release ID or Release name
 * **Cycle** (optional) - Target Cycle Id or Cycle Name
 * **Build** (optional) - Target Build ID or Build name
-* **Result File(s) Path/Directory** - path to result file (or directory for multiple files) relative to build directory
 * **Platform** (optional) - Name of the platform to connect the suite
+* **Test Case Fields** (optional) - Test Case Fields in Json Format
+* **Test Suite Fields** (optional) - Test Suite Fields in Json Format
 
 Build your project from Jenkins and your test results should be automatically linked to the Test Suite specified, (or new Test Suite is created)
 

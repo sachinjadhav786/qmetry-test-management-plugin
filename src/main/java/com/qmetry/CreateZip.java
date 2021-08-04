@@ -54,7 +54,7 @@ public class CreateZip
 
 	public static void zipDirectory(String sourceDir, String zipfile, String formats) throws IOException, QMetryException {
 		String extention="";
-		if(formats.equals("CUCUMBER") || formats.equals("QAS")) {
+		if(formats.equals("CUCUMBER") || formats.equals("QAS") || formats.equals("JSON")) {
 			extention="json";
 		}else{
 			extention="xml";

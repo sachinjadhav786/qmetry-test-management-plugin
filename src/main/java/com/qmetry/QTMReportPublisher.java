@@ -45,12 +45,11 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
     private final String cycle;
     private final String testcaseFields;
     private final String testsuiteFields;
-    private final String skipWarning;
     
     @DataBoundConstructor
     public QTMReportPublisher(final String qtmUrl, final String qtmAutomationApiKey, final String proxyUrl, final String automationFramework, final String automationHierarchy,
                               final String testResultFilePath, final String buildName, final String testSuiteName, final String testSName, final String platformName,
-                              final String project, final String release, final String cycle, final boolean disableaction, final String testcaseFields, final String testsuiteFields, final String skipWarning) {
+                              final String project, final String release, final String cycle, final boolean disableaction, final String testcaseFields, final String testsuiteFields) {
         
         this.disableaction = disableaction;
         this.qtmUrl = qtmUrl;
@@ -68,7 +67,6 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
         this.release = release;
         this.testcaseFields = testcaseFields;
         this.testsuiteFields = testsuiteFields;
-        this.skipWarning = skipWarning;
     }
     
     public boolean isDisableaction() {
@@ -135,9 +133,6 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
 	return testsuiteFields;
     }
     
-    public String getSkipWarning() {
-	return skipWarning;
-    }
 
 	@Override
     //public boolean perform(final AbstractBuild build, final Launcher launcher, final BuildListener listener)
@@ -190,8 +185,6 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                 
                 String testSuiteField_chkd = StringUtils.trimToEmpty(getTestsuiteFields());
                 
-                String skipWarning_chkd = StringUtils.trimToEmpty(getSkipWarning());
-                
                 if(env != null)
                 {
                     qtmUrl_chkd = env.expand(qtmUrl_chkd);
@@ -209,7 +202,6 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                     project_chkd= env.expand(project_chkd);
                     testCaseField_chkd = env.expand(testCaseField_chkd);
                     testSuiteField_chkd =  env.expand(testSuiteField_chkd);
-                    skipWarning_chkd = env.expand(skipWarning_chkd);
                 }
                 
                 String displayName = pluginName + " : Starting Post Build Action";
@@ -229,9 +221,10 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                      || automationFramework_chkd.equals("JUNIT")
                      || automationFramework_chkd.equals("QAS")
                      || automationFramework_chkd.equals("HPUFT")
-                     || automationFramework_chkd.equals("ROBOT")))
+                     || automationFramework_chkd.equals("ROBOT")
+                     || automationFramework_chkd.equals("JSON")))
                 {
-                    throw new QMetryException("Please enter a valid automation framework [CUCUMBER/JUNIT/TESTNG/QAS/HPUFT]");
+                    throw new QMetryException("Please enter a valid automation framework [CUCUMBER/JUNIT/TESTNG/QAS/HPUFT/ROBOT/JSON]");
                 }
                 else
                 {
@@ -261,14 +254,6 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                         {
                             listener.getLogger().println(pluginName + " : Skipping automationHierarchy becuase it is not supported for framework: " + automationFramework_chkd);
                         }
-                    }
-                }
-                
-                if(StringUtils.isNotEmpty(skipWarning_chkd))
-                {
-                    if(!(skipWarning_chkd.equals("0") || skipWarning_chkd.equals("1")))
-                    {
-                        throw new QMetryException("Please provide valid skipWarning value");
                     }
                 }
                 
@@ -307,8 +292,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                                                      cycle_chkd,
                                                      buildnumber,
                                                      testCaseField_chkd,
-                                                     testSuiteField_chkd,
-                                                     skipWarning_chkd);
+                                                     testSuiteField_chkd);
             }
             catch (QMetryException e)
             {
@@ -387,13 +371,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
             items.add("QAS", "QAS");
             items.add("HP-UFT", "HPUFT");
             items.add("Robot", "ROBOT");
-            return items;
-        }
-        
-        public ListBoxModel doFillSkipWarningItems() {
-            ListBoxModel items = new ListBoxModel();
-            items.add("0 - Test Case Import will be failed if the Test Case summary is more than 255 characters","0");
-            items.add("1 - Test Case will be imported by truncating the Test Case summary to 255 characters","1");
+            items.add("Json", "JSON");
             return items;
         }
         
@@ -433,8 +411,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
         throws IOException, ServletException {
             if (testResultFilePath == null || testResultFilePath.length() < 1) {
                 return FormValidation.error("Please provide a file path(or directory for multiple files)");
-            }
-            
+            }   
             return FormValidation.ok();
         }
         
@@ -500,4 +477,3 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
         }
     }
 }
-
