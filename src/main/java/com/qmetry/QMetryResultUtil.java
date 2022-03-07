@@ -3,21 +3,20 @@ package com.qmetry;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.lang.InterruptedException;
+import java.util.List;
+
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
 import hudson.FilePath;
-import jenkins.model.Jenkins;
-import hudson.model.Computer;
-import hudson.slaves.SlaveComputer;
-import hudson.model.Node;
-import hudson.model.Hudson.MasterComputer;
-
-import hudson.model.TaskListener;
-import hudson.model.Run;
 import hudson.model.AbstractProject;
+import hudson.model.Computer;
+import hudson.model.Node;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.model.TopLevelItem;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-import java.util.List;	
+import hudson.model.Hudson.MasterComputer;
+import hudson.slaves.SlaveComputer;
+import jenkins.model.Jenkins;	
 
 public class QMetryResultUtil
 {	
@@ -145,17 +144,11 @@ public class QMetryResultUtil
 
 			    File absoluteFile = new File(masterWorkspace, filePath);
 			    FilePath resultFilePath = null;
-			    if(automationFramework.equals("QAS")) {
-				if(absoluteFile.isFile()) {
-				    resultFilePath = new FilePath(absoluteFile);
-				    if(!resultFilePath.exists())
-					throw new QMetryException("Can not find given file : " + resultFilePath);
-				} else if(absoluteFile.isDirectory()) {
-				    //Getting latest testresult files for QAS
-				    listener.getLogger().println(pluginName + " : Getting latest test-result folder for QAS...");
-				    resultFilePath = lastFileModified(new FilePath(masterWorkspace),filePath);
-				    listener.getLogger().println(pluginName + " : Latest test-result folder : " + resultFilePath.toString());
-				}
+			    if(automationFramework.equals("QAS") && absoluteFile.isDirectory()) {
+				//Getting latest testresult files for QAS
+				listener.getLogger().println(pluginName + " : Getting latest test-result folder for QAS...");
+				resultFilePath = lastFileModified(new FilePath(masterWorkspace),filePath);
+				listener.getLogger().println(pluginName + " : Latest test-result folder : " + resultFilePath.toString());
 			    }
 			    else {
 				resultFilePath = new FilePath(absoluteFile);
@@ -186,6 +179,7 @@ public class QMetryResultUtil
 	    String resultFilePath,
 	    String testSuiteName,
 	    String testSName,
+	    String tsFolderPath,
 	    String automationFramework,
 	    String automationHierarchy,
 	    String buildName,
@@ -195,7 +189,9 @@ public class QMetryResultUtil
 	    String cycle,
 	    int buildnumber, 
 	    String testCaseField, 
-	    String testSuiteField) throws QMetryException, IOException, InterruptedException
+	    String testSuiteField,
+	    String skipWarning,
+	    String isMatchingRequired) throws QMetryException, IOException, InterruptedException
     {
 	File resultFile = prepareResultFile(resultFilePath, /*build*/run, pluginName, listener, workspace, automationFramework);
 
@@ -223,7 +219,7 @@ public class QMetryResultUtil
 	    if(filepath == null)
 		throw new QMetryException("Results' directory of type "+automationFramework+" not found in given directory '"+resultFile.getAbsolutePath()+"'");
 
-	    conn.uploadFileToTestSuite(filepath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl, testCaseField, testSuiteField);
+	    conn.uploadFileToTestSuite(filepath, testSuiteName, testSName, tsFolderPath, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl, testCaseField, testSuiteField, skipWarning, isMatchingRequired);
 	}
 	else if (resultFilePath.endsWith("*.xml") || resultFilePath.endsWith("*.json"))
 	{
@@ -248,7 +244,7 @@ public class QMetryResultUtil
 		}
 		filelist = resultFile.listFiles(XML_FILE_FILTER);
 	    }
-	    else if(automationFramework.equals("CUCUMBER") || automationFramework.equals("JSON"))
+	    else if(automationFramework.equals("CUCUMBER"))
 	    {
 		if(resultFilePath.endsWith("*.xml"))
 		{
@@ -265,7 +261,7 @@ public class QMetryResultUtil
 		for(File f: filelist)
 		{
 		    listener.getLogger().println(pluginName + " : Uploading file : " + f.getAbsolutePath() + "...");
-		    conn.uploadFileToTestSuite(f.getAbsolutePath(), testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl, testCaseField, testSuiteField);
+		    conn.uploadFileToTestSuite(f.getAbsolutePath(), testSuiteName, testSName, tsFolderPath, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl, testCaseField, testSuiteField, skipWarning, isMatchingRequired);
 		}
 	    }
 	}
@@ -276,12 +272,12 @@ public class QMetryResultUtil
 	    {
 		throw new QMetryException("Cannot upload xml file when format is " + automationFramework);
 	    }
-	    else if(rPath.endsWith(".json") && !(automationFramework.equals("CUCUMBER") || automationFramework.equals("JSON")))
+	    else if(rPath.endsWith(".json") && !(automationFramework.equals("CUCUMBER")))
 	    {
 		throw new QMetryException("Cannot upload json file when format is " + automationFramework);
 	    }
 	    listener.getLogger().println(pluginName + " : Reading result files from path '"+resultFile.getAbsolutePath()+"'");
-	    conn.uploadFileToTestSuite(rPath, testSuiteName, testSName, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl, testCaseField, testSuiteField);
+	    conn.uploadFileToTestSuite(rPath, testSuiteName, testSName, tsFolderPath, automationFramework, automationHierarchy, buildName, platformName, project, release, cycle, pluginName, listener, buildnumber, proxyUrl, testCaseField, testSuiteField, skipWarning, isMatchingRequired);
 	}
 	else 
 	{

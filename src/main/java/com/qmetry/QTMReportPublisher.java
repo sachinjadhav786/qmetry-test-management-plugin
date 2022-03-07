@@ -39,17 +39,20 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
     private final String buildName;
     private final String testSuiteName;
     private final String testSName;
+    private final String tsFolderPath;
     private final String platformName;
     private final String project;
     private final String release;
     private final String cycle;
     private final String testcaseFields;
     private final String testsuiteFields;
+    private final String skipWarning;
+    private final String isMatchingRequired;
     
     @DataBoundConstructor
     public QTMReportPublisher(final String qtmUrl, final String qtmAutomationApiKey, final String proxyUrl, final String automationFramework, final String automationHierarchy,
-                              final String testResultFilePath, final String buildName, final String testSuiteName, final String testSName, final String platformName,
-                              final String project, final String release, final String cycle, final boolean disableaction, final String testcaseFields, final String testsuiteFields) {
+                              final String testResultFilePath, final String buildName, final String testSuiteName, final String testSName, final String tsFolderPath, final String platformName,
+                              final String project, final String release, final String cycle, final boolean disableaction, final String testcaseFields, final String testsuiteFields, final String skipWarning, final String isMatchingRequired) {
         
         this.disableaction = disableaction;
         this.qtmUrl = qtmUrl;
@@ -61,12 +64,15 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
         this.buildName = buildName;
         this.testSuiteName = testSuiteName;
         this.testSName = testSName;
+        this.tsFolderPath = tsFolderPath;
         this.platformName = platformName;
         this.project = project;
         this.cycle = cycle;
         this.release = release;
         this.testcaseFields = testcaseFields;
         this.testsuiteFields = testsuiteFields;
+        this.skipWarning = skipWarning;
+        this.isMatchingRequired = isMatchingRequired;
     }
     
     public boolean isDisableaction() {
@@ -109,6 +115,10 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
         return this.testSName;
     }
     
+    public String getTsFolderPath() {
+        return tsFolderPath;
+    }
+    
     public String getPlatformName() {
         return this.platformName;
     }
@@ -133,8 +143,15 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
 	return testsuiteFields;
     }
     
+    public String getSkipWarning() {
+	return skipWarning;
+    }
 
-	@Override
+    public String getIsMatchingRequired() {
+	return isMatchingRequired;
+    }    
+
+    @Override
     //public boolean perform(final AbstractBuild build, final Launcher launcher, final BuildListener listener)
     public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws AbortException
     {
@@ -175,6 +192,8 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                 
                 String testSName_chkd = StringUtils.trimToEmpty(getTestSName());
                 
+                String tsFolderPath_chkd = StringUtils.trimToEmpty(getTsFolderPath());
+                
                 String release_chkd = StringUtils.trimToEmpty(getRelease());
                 
                 String cycle_chkd = StringUtils.trimToEmpty(getCycle());
@@ -184,6 +203,10 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                 String testCaseField_chkd = StringUtils.trimToEmpty(getTestcaseFields());
                 
                 String testSuiteField_chkd = StringUtils.trimToEmpty(getTestsuiteFields());
+                
+                String skipWarning_chkd = StringUtils.trimToEmpty(getSkipWarning());
+
+                String isMatchingRequired_chkd = StringUtils.trimToEmpty(getIsMatchingRequired());
                 
                 if(env != null)
                 {
@@ -197,11 +220,14 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                     platformName_chkd= env.expand(platformName_chkd);
                     testSuiteName_chkd= env.expand(testSuiteName_chkd);
                     testSName_chkd= env.expand(testSName_chkd);
+                    tsFolderPath_chkd= env.expand(tsFolderPath_chkd);
                     release_chkd= env.expand(release_chkd);
                     cycle_chkd= env.expand(cycle_chkd);
                     project_chkd= env.expand(project_chkd);
                     testCaseField_chkd = env.expand(testCaseField_chkd);
                     testSuiteField_chkd =  env.expand(testSuiteField_chkd);
+                    skipWarning_chkd = env.expand(skipWarning_chkd);
+                    isMatchingRequired_chkd = env.expand(isMatchingRequired_chkd);
                 }
                 
                 String displayName = pluginName + " : Starting Post Build Action";
@@ -221,10 +247,9 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                      || automationFramework_chkd.equals("JUNIT")
                      || automationFramework_chkd.equals("QAS")
                      || automationFramework_chkd.equals("HPUFT")
-                     || automationFramework_chkd.equals("ROBOT")
-                     || automationFramework_chkd.equals("JSON")))
+                     || automationFramework_chkd.equals("ROBOT")))
                 {
-                    throw new QMetryException("Please enter a valid automation framework [CUCUMBER/JUNIT/TESTNG/QAS/HPUFT/ROBOT/JSON]");
+                    throw new QMetryException("Please enter a valid automation framework [CUCUMBER/JUNIT/TESTNG/QAS/HPUFT/ROBOT]");
                 }
                 else
                 {
@@ -256,7 +281,20 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                         }
                     }
                 }
-                
+                if(StringUtils.isNotEmpty(skipWarning_chkd))
+                {
+                    if(!(skipWarning_chkd.equals("0") || skipWarning_chkd.equals("1")))
+                    {
+                	throw new QMetryException("Please provide valid skipWarning value");
+                    }
+                }
+                if(StringUtils.isNotEmpty(isMatchingRequired_chkd))
+                {
+                    if(!(isMatchingRequired_chkd.equals("false") || isMatchingRequired_chkd.equals("true")))
+                    {
+                	throw new QMetryException("Please provide valid isMatchingRequired value");
+                    }
+                } 
                 if(StringUtils.isEmpty(qtmUrl_chkd)) {
                     throw new QMetryException("URL to qmetry instance cannot be empty");
                 }
@@ -283,6 +321,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                                                      testResultFilePath_chkd,
                                                      testSuiteName_chkd,
                                                      testSName_chkd,
+                                                     tsFolderPath_chkd,
                                                      automationFramework_chkd,
                                                      automationHierarchy_chkd,
                                                      buildName_chkd,
@@ -292,7 +331,9 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                                                      cycle_chkd,
                                                      buildnumber,
                                                      testCaseField_chkd,
-                                                     testSuiteField_chkd);
+                                                     testSuiteField_chkd,
+                                                     skipWarning_chkd,
+                                                     isMatchingRequired_chkd);
             }
             catch (QMetryException e)
             {
@@ -371,10 +412,23 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
             items.add("QAS", "QAS");
             items.add("HP-UFT", "HPUFT");
             items.add("Robot", "ROBOT");
-            items.add("Json", "JSON");
             return items;
         }
-        
+
+        public ListBoxModel doFillIsMatchingRequiredItems() {
+            ListBoxModel items = new ListBoxModel();
+            items.add("1 - Create a new Test Case or Test Case Version if no version matches with the one being uploaded","true");
+            items.add("0 - Reuse already linked Test Case version OR Auto link the existing latest version of Test Case","false");
+            return items;
+        }
+
+        public ListBoxModel doFillSkipWarningItems() {
+            ListBoxModel items = new ListBoxModel();
+            items.add("0 - Test Case Import will be failed if the Test Case summary is more than 255 characters","0");
+            items.add("1 - Test Case will be imported by truncating the Test Case summary to 255 characters","1");
+            return items;
+        }
+
         public ListBoxModel doFillAutomationHierarchyItems(@QueryParameter String automationFramework ) {
             ListBoxModel items = new ListBoxModel();
             if (automationFramework.equals("TESTNG"))

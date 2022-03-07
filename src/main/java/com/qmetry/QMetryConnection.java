@@ -43,9 +43,9 @@ public class QMetryConnection {
 	return true;
     }
 
-    public void uploadFileToTestSuite(String filePath, String testSuiteName, String testSName, String automationFramework, String automationHierarchy,
-	    String buildName, String platformName, String project, String release, String cycle, String pluginName, /*BuildListener*/TaskListener listener, int buildnumber, String proxyUrl, String testCaseField, String testSuiteField)
-		    throws QMetryException, IOException {
+    public void uploadFileToTestSuite(String filePath, String testSuiteName, String testSName, String tsFolderPath, String automationFramework, String automationHierarchy,
+	    String buildName, String platformName, String project, String release, String cycle, String pluginName, /*BuildListener*/TaskListener listener, 
+	    int buildnumber, String proxyUrl, String testCaseField, String testSuiteField, String skipWarning, String isMatchingRequired) throws QMetryException, IOException {
 
 	CloseableHttpClient httpClient = null;
 	CloseableHttpResponse response = null;
@@ -54,7 +54,7 @@ public class QMetryConnection {
 
 	listener.getLogger().println(pluginName + " : uploading result file(s) of type '"+automationFramework+"'");
 	builder.addTextBody("entityType", automationFramework, ContentType.TEXT_PLAIN);
-	builder.addTextBody("apiVersion", "2", ContentType.TEXT_PLAIN);
+	
 	if(automationHierarchy!=null && !automationHierarchy.isEmpty())
 	{
 	    if(automationFramework.equals("TESTNG") || automationFramework.equals("JUNIT"))
@@ -71,6 +71,11 @@ public class QMetryConnection {
 	{
 	    listener.getLogger().println(pluginName + " : test suite name '"+testSName+"'");
 	    builder.addTextBody("testsuiteName", testSName + "_#" + buildnumber, ContentType.TEXT_PLAIN);
+	}
+	if(tsFolderPath!=null && !tsFolderPath.isEmpty())
+	{
+	    listener.getLogger().println(pluginName + " : test suite folder path '"+tsFolderPath+"'");
+	    builder.addTextBody("tsFolderPath", tsFolderPath, ContentType.TEXT_PLAIN);
 	}
 	if(buildName!=null && !buildName.isEmpty()) {
 	    listener.getLogger().println(pluginName + " : using build '"+buildName+"'");
@@ -100,10 +105,20 @@ public class QMetryConnection {
 	    listener.getLogger().println(pluginName + " : target test suite Fields '"+ testSuiteField +"'");
 	    builder.addTextBody("testsuite_fields", testSuiteField, ContentType.TEXT_PLAIN);
 	}
+	if(skipWarning!=null && !skipWarning.isEmpty()) {
+	    listener.getLogger().println(pluginName + " : skipWarning '"+ skipWarning +"'");
+	    builder.addTextBody("skipWarning", skipWarning, ContentType.TEXT_PLAIN);
+	}
+	if(isMatchingRequired!=null && !isMatchingRequired.isEmpty()) {
+	    listener.getLogger().println(pluginName + " : isMatchingRequired '"+ isMatchingRequired +"'");
+	    builder.addTextBody("is_matching_required", isMatchingRequired, ContentType.TEXT_PLAIN);
+	}
 
 	File f = new File(filePath);
 	builder.addPart("file", new FileBody(f));
 	HttpEntity multipart = builder.build();
+	
+	listener.getLogger().println(pluginName + " : URL '"+ getUrl() + "/rest/import/createandscheduletestresults/1" +"'");
 
 	HttpPost uploadFile = new HttpPost(getUrl() + "/rest/import/createandscheduletestresults/1");
 	uploadFile.addHeader("accept", "application/json");
