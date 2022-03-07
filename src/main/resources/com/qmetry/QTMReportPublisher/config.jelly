@@ -42,6 +42,10 @@
 			<f:textbox placeholder="Test Suite Name" id="testSName"/>
 		</f:entry>
 		
+		<f:entry title="Test Suite Folder Path" field="tsFolderPath" >
+			<f:textbox placeholder="Test Suite Folder Path" id="tsFolderPath"/>
+		</f:entry>
+	
 		<f:entry title="Release" field="release">
 			<f:textbox placeholder="Target Release ID or Name" />
 		</f:entry>
@@ -67,6 +71,10 @@
 		</f:entry>
 		
 		<f:entry title="Skip Warning" field="skipWarning">
+			<f:select />
+		</f:entry>
+		
+		<f:entry title="Is Matching Required" field="isMatchingRequired">
 			<f:select />
 		</f:entry>
 	
