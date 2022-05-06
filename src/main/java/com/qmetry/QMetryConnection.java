@@ -5,19 +5,20 @@ import java.io.IOException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.apache.http.client.config.RequestConfig;
-
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
 import hudson.model.TaskListener;
 
 public class QMetryConnection {
@@ -142,28 +143,59 @@ public class QMetryConnection {
 	    try
 	    {
 		JSONObject jsonresponse = (JSONObject) new JSONParser().parse(responseString);
-		if(jsonresponse.get("success").toString().equals("true"))
-		{
+		if(jsonresponse.get("success").toString().equals("true")) {
+		    
 		    listener.getLogger().println(pluginName + " : Response --> " + jsonresponse.toString().replace("\\/","/"));
+		    
+		    if(jsonresponse.toString().contains("requestId") && jsonresponse.get("requestId") != null) {
+			getRequeststatus(jsonresponse.get("requestId"), httpClient, pluginName, listener);
+		    }
 		}
-		else
-		{
+		else {
 		    listener.getLogger().println(pluginName + " : Response : '"+responseString+"'");
 		    throw new QMetryException("Error uploading file to server!");
 		}
 	    }
-	    catch(ParseException e)
-	    {
+	    catch(ParseException e) {
 		listener.getLogger().println(pluginName + " : ERROR :: QMetryConnection in uploadFileToTestSuite : '"+responseString+"'");
 		throw new QMetryException("Error uploading file to server!");
 	    }
 	}
-	else
-	{
+	else {
 	    listener.getLogger().println(pluginName + " : Response : '"+responseString+"'");
 	    throw new QMetryException("Error uploading file to server!");
 	}
 	httpClient.close();
 	response.close();
+    }
+    
+    public void getRequeststatus(Object requestId, CloseableHttpClient httpClient, String pluginName, TaskListener listener) throws QMetryException, IOException {
+
+	String statusString = null;
+	try {
+	    HttpGet getStatus = new HttpGet(getUrl() + "/rest/admin/status/automation/" + requestId);
+	    getStatus.addHeader("apiKey",getKey());
+	    getStatus.addHeader("scope","default");
+
+	    CloseableHttpResponse statusResponse = httpClient.execute(getStatus);
+	    statusString = EntityUtils.toString(statusResponse.getEntity());
+	    JSONObject statusObj = (JSONObject) new JSONParser().parse(statusString);
+
+	    if (statusResponse.getStatusLine().getStatusCode() != 200) {
+		listener.getLogger().println(pluginName+"Couldn't get request details.");
+		listener.getLogger().println(pluginName+"Status Code : "+ statusResponse.getStatusLine().getStatusCode());
+	    } else if(statusObj.get("status").toString().equals("In Progress")) {
+		getRequeststatus(requestId, httpClient, pluginName, listener);
+	    } else {
+		listener.getLogger().println(pluginName + " : Response --> " + statusObj.toString().replace("\\/","/"));
+	    }
+
+	    if(statusObj.get("status").toString().equals("Completed")) {
+		listener.getLogger().println(pluginName+" : Test results uploaded successfully!");
+	    }
+	} catch(ParseException e) {
+	    listener.getLogger().println(pluginName + " : ERROR :: QMetryConnection in uploadFileToTestSuite : '"+statusString+"'");
+	    throw new QMetryException("Error uploading file to server!");
+	}
     }
 }
