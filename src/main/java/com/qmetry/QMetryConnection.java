@@ -46,7 +46,7 @@ public class QMetryConnection {
 
     public void uploadFileToTestSuite(String filePath, String testSuiteName, String testSName, String tsFolderPath, String automationFramework, String automationHierarchy,
 	    String buildName, String platformName, String project, String release, String cycle, String pluginName, /*BuildListener*/TaskListener listener, 
-	    int buildnumber, String proxyUrl, String testCaseField, String testSuiteField, String skipWarning, String isMatchingRequired) throws QMetryException, IOException {
+	    int buildnumber, String proxyUrl, String testCaseField, String testSuiteField, String skipWarning, String isMatchingRequired) throws Exception {
 
 	CloseableHttpClient httpClient = null;
 	CloseableHttpResponse response = null;
@@ -169,7 +169,7 @@ public class QMetryConnection {
 	response.close();
     }
     
-    public void getRequeststatus(Object requestId, CloseableHttpClient httpClient, String pluginName, TaskListener listener) throws QMetryException, IOException {
+    public void getRequeststatus(Object requestId, CloseableHttpClient httpClient, String pluginName, TaskListener listener) throws Exception {
 
 	String statusString = null;
 	try {
@@ -181,21 +181,52 @@ public class QMetryConnection {
 	    statusString = EntityUtils.toString(statusResponse.getEntity());
 	    JSONObject statusObj = (JSONObject) new JSONParser().parse(statusString);
 
-	    if (statusResponse.getStatusLine().getStatusCode() != 200) {
-		listener.getLogger().println(pluginName+"Couldn't get request details.");
-		listener.getLogger().println(pluginName+"Status Code : "+ statusResponse.getStatusLine().getStatusCode());
-	    } else if(statusObj.get("status").toString().equals("In Progress")) {
-		getRequeststatus(requestId, httpClient, pluginName, listener);
-	    } else {
-		listener.getLogger().println(pluginName + " : Response --> " + statusObj.toString().replace("\\/","/"));
-	    }
 
+		if (statusResponse.getStatusLine().getStatusCode() != 200) {
+			listener.getLogger().println(pluginName+"Couldn't get request details.");
+			listener.getLogger().println(pluginName+"Status Code : "+ statusResponse.getStatusLine().getStatusCode());
+	    } else if(statusObj.get("status").toString().equals("In Progress")) {
+			getRequeststatus(requestId, httpClient, pluginName, listener);
+	    } else if (statusObj.get("status").toString().equals("In Queue")) {
+			requestagain(requestId, httpClient, pluginName, listener);
+		} else {
+			listener.getLogger().println(pluginName + " : Response --> " + statusObj.toString().replace("\\/", "/"));
+	    }
 	    if(statusObj.get("status").toString().equals("Completed")) {
-		listener.getLogger().println(pluginName+" : Test results uploaded successfully!");
+			listener.getLogger().println(pluginName+" : Test results uploaded successfully!");
 	    }
 	} catch(ParseException e) {
 	    listener.getLogger().println(pluginName + " : ERROR :: QMetryConnection in uploadFileToTestSuite : '"+statusString+"'");
 	    throw new QMetryException("Error uploading file to server!");
 	}
     }
+
+	//Request again method for 10 min 2nd API call
+	public void requestagain(Object requestId, CloseableHttpClient httpClient, String pluginName, TaskListener listener) throws Exception{
+		String statusString = null;
+		HttpGet getStatus = new HttpGet(getUrl() + "/rest/admin/status/automation/" + requestId);
+		getStatus.addHeader("apiKey",getKey());
+		getStatus.addHeader("scope","default");
+		//Timer function for all API 10 mins
+		long start = System.currentTimeMillis(); //start time
+		long end = start + 10 * 60 * 1000; // 10 mins (60*1000 = 1 min | 1*10 = 10 mins)
+
+		//Loop to start timer ( Run from current time to next 10 mins in future)
+		while (System.currentTimeMillis() < end) {
+			CloseableHttpResponse statusResponse = httpClient.execute(getStatus);
+			statusString = EntityUtils.toString(statusResponse.getEntity());
+			JSONObject statusObj = (JSONObject) new JSONParser().parse(statusString);
+			String s = pluginName + " : Response --> " + statusObj.toString().replace("\\/", "/");
+			//In Progress status
+			if(statusObj.get("status").toString().equals("In Progress")) {
+				listener.getLogger().println(s);
+				continue;
+			}
+			// Completed or Failed status
+			if(statusObj.get("status").toString().equals("Completed")||statusObj.get("status").toString().equals("Failed")){
+				listener.getLogger().println(s);
+				break;
+			}
+		}
+	}
 }
