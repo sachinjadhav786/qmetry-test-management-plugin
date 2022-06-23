@@ -191,6 +191,7 @@ public class QMetryConnection {
 			requestagain(requestId, httpClient, pluginName, listener);
 		}
 		if(statusObj.get("status").toString().equals("Completed")) {
+			listener.getLogger().println(s);
 			listener.getLogger().println(pluginName+" : Test results uploaded successfully!");
 	    }
 		else {
