@@ -189,7 +189,8 @@ public class QMetryConnection {
 	    } else if (statusObj.get("status").toString().equals("In Queue")) {
 			listener.getLogger().println(s);
 			requestagain(requestId, httpClient, pluginName, listener);
-		}else if(statusObj.get("status").toString().equals("Completed")) {
+		}
+		if(statusObj.get("status").toString().equals("Completed")) {
 			listener.getLogger().println(pluginName+" : Test results uploaded successfully!");
 	    }
 		else {
@@ -210,7 +211,7 @@ public class QMetryConnection {
 		//Timer function for all API 10 mins
 		long start = System.currentTimeMillis(); //start time
 		long end = start + 10 * 60 * 1000; // 10 mins (60*1000 = 1 min | 1*10 = 10 mins)
-
+		boolean flag = false;
 		//Loop to start timer ( Run from current time to next 10 mins in future)
 		while (System.currentTimeMillis() < end) {
 			CloseableHttpResponse statusResponse = httpClient.execute(getStatus);
@@ -218,9 +219,9 @@ public class QMetryConnection {
 			JSONObject statusObj = (JSONObject) new JSONParser().parse(statusString);
 			String s = pluginName + " : Response --> " + statusObj.toString().replace("\\/", "/");
 		    //In Progress status
-			if(statusObj.get("status").toString().equals("In Progress")) {
+			if(statusObj.get("status").toString().equals("In Progress")&& flag==false) {
 				listener.getLogger().println(s);
-				continue;
+				flag = true;
 			}
 			// Completed or Failed status
 			if(statusObj.get("status").toString().equals("Completed")||statusObj.get("status").toString().equals("Failed")){
