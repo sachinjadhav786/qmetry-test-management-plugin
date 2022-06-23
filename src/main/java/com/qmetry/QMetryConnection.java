@@ -194,9 +194,6 @@ public class QMetryConnection {
 			listener.getLogger().println(s);
 			listener.getLogger().println(pluginName+" : Test results uploaded successfully!");
 	    }
-		else {
-			listener.getLogger().println(s);
-		}
 	} catch(ParseException e) {
 	    listener.getLogger().println(pluginName + " : ERROR :: QMetryConnection in uploadFileToTestSuite : '"+statusString+"'");
 	    throw new QMetryException("Error uploading file to server!");
