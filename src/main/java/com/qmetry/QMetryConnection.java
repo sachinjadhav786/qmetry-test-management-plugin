@@ -186,17 +186,15 @@ public class QMetryConnection {
 		if (statusResponse.getStatusLine().getStatusCode() != 200) {
 			listener.getLogger().println(pluginName+"Couldn't get request details.");
 			listener.getLogger().println(pluginName+"Status Code : "+ statusResponse.getStatusLine().getStatusCode());
-	    } else if(statusObj.get("status").toString().equals("In Progress")) {
-			getRequeststatus(requestId, httpClient, pluginName, listener);
 	    } else if (statusObj.get("status").toString().equals("In Queue")) {
 			listener.getLogger().println(s);
 			requestagain(requestId, httpClient, pluginName, listener);
-		} else {
-			listener.getLogger().println(s);
-	    }
-	    if(statusObj.get("status").toString().equals("Completed")) {
+		}else if(statusObj.get("status").toString().equals("Completed")) {
 			listener.getLogger().println(pluginName+" : Test results uploaded successfully!");
 	    }
+		else {
+			listener.getLogger().println(s);
+		}
 	} catch(ParseException e) {
 	    listener.getLogger().println(pluginName + " : ERROR :: QMetryConnection in uploadFileToTestSuite : '"+statusString+"'");
 	    throw new QMetryException("Error uploading file to server!");
@@ -219,7 +217,7 @@ public class QMetryConnection {
 			statusString = EntityUtils.toString(statusResponse.getEntity());
 			JSONObject statusObj = (JSONObject) new JSONParser().parse(statusString);
 			String s = pluginName + " : Response --> " + statusObj.toString().replace("\\/", "/");
-			//In Progress status
+		    //In Progress status
 			if(statusObj.get("status").toString().equals("In Progress")) {
 				listener.getLogger().println(s);
 				continue;
