@@ -220,12 +220,12 @@ public class QMetryConnection {
 			statusString = EntityUtils.toString(statusResponse.getEntity());
 			JSONObject statusObj = (JSONObject) new JSONParser().parse(statusString);
 			String s = pluginName + " : Response --> " + statusObj.toString().replace("\\/", "/");
-		    //In Progress status
+		    //In Progress status in logs
 			if(statusObj.get("status").toString().equals("In Progress")&& flag==false) {
 				listener.getLogger().println(s);
 				flag = true;
 			}
-			// Completed or Failed status
+			// Completed or Failed status in logs
 			if(statusObj.get("status").toString().equals("Completed")||statusObj.get("status").toString().equals("Failed")){
 				listener.getLogger().println(s);
 				break;
