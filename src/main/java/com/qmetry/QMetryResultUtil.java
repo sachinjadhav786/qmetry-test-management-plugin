@@ -191,8 +191,7 @@ public class QMetryResultUtil
 	    String testCaseField, 
 	    String testSuiteField,
 	    String skipWarning,
-	    String isMatchingRequired) throws QMetryException, IOException, InterruptedException
-    {
+	    String isMatchingRequired) throws Exception {
 	File resultFile = prepareResultFile(resultFilePath, /*build*/run, pluginName, listener, workspace, automationFramework);
 
 	QMetryConnection conn = new QMetryConnection(url, key);
