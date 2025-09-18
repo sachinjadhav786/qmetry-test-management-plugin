@@ -25,13 +25,14 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import hudson.util.Secret;
 import jenkins.tasks.SimpleBuildStep;
 
 public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
     
     private final boolean disableaction;
     private final String qtmUrl;
-    private final String qtmAutomationApiKey;
+    private final Secret qtmAutomationApiKey;
     private final String proxyUrl;
     private final String automationFramework;
     private final String automationHierarchy;
@@ -56,7 +57,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
         
         this.disableaction = disableaction;
         this.qtmUrl = qtmUrl;
-        this.qtmAutomationApiKey = qtmAutomationApiKey;
+        this.qtmAutomationApiKey = Secret.fromString(qtmAutomationApiKey);
         this.proxyUrl = proxyUrl;
         this.automationFramework = automationFramework;
         this.automationHierarchy = automationHierarchy;
@@ -83,7 +84,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
         return this.qtmUrl;
     }
     
-    public String getQtmAutomationApiKey() {
+    public Secret getQtmAutomationApiKey() {
         return this.qtmAutomationApiKey;
     }
 
@@ -174,7 +175,7 @@ public class QTMReportPublisher extends Recorder implements SimpleBuildStep {
                 listener.getLogger().println("-------------------------------------------------------------------------------");
                 String qtmUrl_chkd = StringUtils.trimToEmpty(getQtmUrl());
                 
-                String qtmAutomationApiKey_chkd = StringUtils.trimToEmpty(getQtmAutomationApiKey());
+                String qtmAutomationApiKey_chkd = StringUtils.trimToEmpty(Secret.toString(getQtmAutomationApiKey()));
 
                 String proxyUrl_chkd = StringUtils.trimToEmpty(getProxyUrl());
                 

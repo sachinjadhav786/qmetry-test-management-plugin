@@ -11,7 +11,7 @@
 		</f:entry>
 		
 		<f:entry title="Automation API Key" field="qtmAutomationApiKey">
-			<f:textbox placeholder="Your QMetry project automation API Key" />
+			<f:password placeholder="Your QMetry project automation API Key" />
 		</f:entry>
 
 		<f:entry title="Proxy URL" field="proxyUrl">
